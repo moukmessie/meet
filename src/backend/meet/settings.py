@@ -824,6 +824,17 @@ class Base(Configuration):
     RESOURCE_DEFAULT_ACCESS_LEVEL = values.Value(
         "public", environ_name="RESOURCE_DEFAULT_ACCESS_LEVEL", environ_prefix=None
     )
+    # External room creation check (multi-organization deployments).
+    # Empty URL: no check.
+    ROOM_CREATION_CHECK_URL = values.Value(
+        None, environ_name="ROOM_CREATION_CHECK_URL", environ_prefix=None
+    )
+    ROOM_CREATION_CHECK_TOKEN = SecretFileValue(
+        None, environ_name="ROOM_CREATION_CHECK_TOKEN", environ_prefix=None
+    )
+    ROOM_CREATION_CHECK_TIMEOUT = values.FloatValue(
+        2.0, environ_name="ROOM_CREATION_CHECK_TIMEOUT", environ_prefix=None
+    )
     ALLOW_UNREGISTERED_ROOMS = values.BooleanValue(
         True, environ_name="ALLOW_UNREGISTERED_ROOMS", environ_prefix=None
     )
