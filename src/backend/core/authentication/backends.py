@@ -1,5 +1,8 @@
 """Authentication Backends for the Meet core app."""
 
+import logging
+import uuid
+
 from django.conf import settings
 from django.core.exceptions import (
     SuspiciousOperation,
@@ -16,6 +19,34 @@ from rest_framework.authentication import SessionAuthentication
 from core.models import User
 from core.validators import sub_validator
 
+logger = logging.getLogger(__name__)
+
+
+def get_organization_id(claim):
+    """Return the organization id found in the OIDC 'organization' claim.
+
+    The expected format is the one of the Keycloak "Organization Membership"
+    mapper with the organization id enabled: {"<alias>": {"id": "<uuid>"}}.
+    Only the id identifies the organization, the alias may change.
+
+    A user without organization, with several organizations or with a claim
+    in an unexpected format gets None: the login is not refused, but the user
+    has no organization.
+    """
+    if not claim:
+        return None
+    if not isinstance(claim, dict) or len(claim) != 1:
+        logger.warning(
+            "Ignoring 'organization' claim: expected exactly one organization"
+        )
+        return None
+    (value,) = claim.values()
+    try:
+        return uuid.UUID(str(value["id"]))
+    except (TypeError, KeyError, ValueError):
+        logger.warning("Ignoring 'organization' claim: invalid organization id")
+        return None
+
 
 class OIDCAuthenticationBackend(LaSuiteOIDCAuthenticationBackend):
     """Custom OpenID Connect (OIDC) Authentication Backend.
@@ -23,6 +54,11 @@ class OIDCAuthenticationBackend(LaSuiteOIDCAuthenticationBackend):
     This class overrides the default OIDC Authentication Backend to accommodate differences
     in the User and Identity models, and handles signed and/or encrypted UserInfo response.
     """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Organization id read from the last user info (see get_organization_id)
+        self._organization_id = None
 
     def get_extra_claims(self, user_info):
         """
@@ -35,6 +71,8 @@ class OIDCAuthenticationBackend(LaSuiteOIDCAuthenticationBackend):
           dict: A dictionary of extra claims.
 
         """
+        # Kept aside: applied in post_get_or_create_user, even when it becomes empty
+        self._organization_id = get_organization_id(user_info.get("organization"))
         return {
             # Get user's full name from OIDC fields defined in settings
             "full_name": self.compute_full_name(user_info),
@@ -54,6 +92,10 @@ class OIDCAuthenticationBackend(LaSuiteOIDCAuthenticationBackend):
         - None
 
         """
+        if user.organization_id != self._organization_id:
+            user.organization_id = self._organization_id
+            user.save(update_fields=["organization_id"])
+
         email = claims["email"]
         if is_new_user and email and settings.SIGNUP_NEW_USER_TO_MARKETING_EMAIL:
             self.signup_to_marketing_email(email)
