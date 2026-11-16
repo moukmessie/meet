@@ -14,6 +14,17 @@ Ces informations vivent dans des dépôts privés.
 - `main` : miroir de `upstream/main`, **jamais modifié**. Remote `upstream` : `https://github.com/suitenumerique/meet.git`.
 - `patched/vX.Y.Z` : part du tag amont `vX.Y.Z`. Elle contient les patchs (un commit par patch) et les fichiers propres au fork (`CLAUDE.md`, `.claude/`, CI de l'image patchée).
 
+## CI du fork
+
+`.github/workflows/fork-patched-ci.yml` : lint et tests backend sur les PR et les pushs
+des branches `patched/**` (les workflows amont ne voient pas les branches contenant un
+`/`), puis image backend patchée `ghcr.io/moukmessie/meet-backend` (tag `sha-…`, et
+`vX.Y.Z-patched.N` sur les tags), digest dans le résumé du job.
+
+Contrôles amont sans objet pour le fork : `check-changelog` (pas d'entrée de
+CHANGELOG pour les patchs, pour faciliter le rebase) et `lint-spell-mistakes` (signale
+le français de ce fichier).
+
 ## Conventions (celles de l'amont)
 
 - Commits au format gitmoji, vérifié par gitlint : `<gitmoji>(<scope>) <sujet en minuscules>`, par exemple `✨(backend) restrict trusted rooms to the user organization`. Pas de trailer `Co-Authored-By`.
