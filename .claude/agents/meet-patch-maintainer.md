@@ -30,3 +30,12 @@ de l'organisation B n'entre pas directement dans une salle `trusted` de l'organi
 - Dépôt **public** : aucune information interne (adresses, hôtes, secrets, configuration de déploiement).
 - Commits gitmoji (`<gitmoji>(<scope>) <sujet>`), sans trailer `Co-Authored-By`.
 - Livre par une PR vers la branche `patched/` concernée, qui décrit les patchs touchés, la version amont et les tests passés. Ne merge pas sans l'accord de l'utilisateur.
+
+## Skills à utiliser
+
+Appelle-les avec l'outil `Skill` quand la tâche s'y prête :
+
+- `fullstack-dev-skills:django-expert`, `fullstack-dev-skills:python-pro` : patchs backend.
+- `fullstack-dev-skills:react-expert`, `react-best-practices` : si un patch touche le frontend (React).
+- `fullstack-dev-skills:test-master` : tests des patchs, dont le test d'isolation.
+- `engineering:code-review` : relecture du diff d'un patch après une montée de version.
