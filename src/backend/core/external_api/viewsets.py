@@ -27,6 +27,7 @@ from core.api.exceptions import ensure_room_not_deleted
 from core.api.feature_flag import FeatureFlag
 from core.api.locks import room_locked_for_update
 from core.services.jwt_token import JwtTokenService
+from core.services.room_creation_check import ensure_room_creation_allowed
 from core.services.room_management import RoomManagement, RoomManagementException
 from core.services.transit_code import TransitCodeService
 
@@ -282,6 +283,7 @@ class RoomViewSet(  # pylint: disable=too-many-ancestors
 
     def perform_create(self, serializer: serializers.RoomSerializer):
         """Set the current user as owner of the newly created room."""
+        ensure_room_creation_allowed(self.request.user)
         room = serializer.save()
         self.audit_target = room
         models.ResourceAccess.objects.create(
