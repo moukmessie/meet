@@ -1,4 +1,4 @@
-# Fork CI: lint, backend tests and patched backend image for the patched/**
+# Fork CI: lint, tests and patched backend and frontend images for the patched/**
 # branches (the upstream workflows only match branches without a slash).
 name: Fork patched CI
 
@@ -133,6 +133,35 @@ jobs:
       - name: Run tests
         run: uv run --no-sync --no-build pytest -n 2
 
+  test-front:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: src/frontend
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - name: Install Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: "24.22.1"
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+      - name: Check formatting
+        run: npm run check
+      - name: Lint
+        run: npm run lint
+      - name: Run tests
+        run: npm test
+      - name: Build
+        run: npm run build
+        env:
+          VITE_APP_TITLE: Meet
+
   image-backend:
     needs: [lint-back, test-back]
     if: github.event_name == 'push'
@@ -174,6 +203,55 @@ jobs:
         run: |
           {
             echo "### Image backend"
+            echo '```'
+            echo "$TAGS"
+            echo "$DIGEST"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  image-frontend:
+    needs: [test-front]
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/meet-frontend
+          tags: |
+            type=sha,format=short
+            type=ref,event=tag
+      - id: build
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: ./src/frontend/Dockerfile
+          target: frontend-production
+          build-args: |
+            DOCKER_USER=1001:127
+            VITE_APP_TITLE=Meet
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+      - name: Digest
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          {
+            echo "### Image frontend"
             echo '```'
             echo "$TAGS"
             echo "$DIGEST"
