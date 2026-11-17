@@ -183,6 +183,11 @@ def generate_livekit_config(  # noqa: PLR0917
     if configuration is not None:
         sources = configuration.get("can_publish_sources", None)
 
+    # Only passed when known, so that calls stay identical to upstream otherwise.
+    extra = {}
+    if room_organization_id is not None:
+        extra["room_organization_id"] = room_organization_id
+
     return {
         "url": settings.LIVEKIT_CONFIGURATION["url"],
         "room": room_id,
@@ -194,7 +199,7 @@ def generate_livekit_config(  # noqa: PLR0917
             sources=sources,
             role=role,
             participant_id=participant_id,
-            room_organization_id=room_organization_id,
+            **extra,
         ),
     }
 
