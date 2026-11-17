@@ -237,6 +237,17 @@
       "helpLinkLabel": "Presentation issue",
       "closeButton": "Dismiss",
       "newTab": "New window"
+    },
+    "refusal": {
+      "title": "Access denied",
+      "generic": "The meeting could not be created or joined.",
+      "monthly_minutes_exhausted": "The monthly videoconferencing minutes quota is used up. It renews on {{date}}.",
+      "monthly_minutes_exhausted_noDate": "The monthly videoconferencing minutes quota is used up.",
+      "concurrent_limit": "The maximum number of simultaneous meetings of your organization has been reached.",
+      "no_organization": "You must belong to an organization to create a meeting.",
+      "check_unavailable": "Meeting creation is temporarily unavailable, please try again later.",
+      "room_creation_refused": "You are not allowed to create a meeting.",
+      "refused": "You are not allowed to create a meeting."
     }
   },
   "isIdleDisconnectModal": {
@@ -641,8 +652,8 @@
           "description": "No one needs to request to join the meeting."
         },
         "trusted": {
-          "label": "Open to trusted people",
-          "description": "Authenticated people do not need to request to join the meeting."
+          "label": "Open to organization members",
+          "description": "Authenticated members of the organization do not need to request to join the meeting."
         },
         "restricted": {
           "label": "Restricted",
@@ -868,5 +879,17 @@
   },
   "participantTile": {
     "screenShare": "{{name}}'s screen"
+  },
+  "meetingEnding": {
+    "title": "Meeting ending",
+    "minute_one": "The meeting ends in {{count}} min",
+    "minute_other": "The meeting ends in {{count}} min",
+    "lessThanMinute": "The meeting ends in less than a minute",
+    "ended": "The meeting is ending now",
+    "reasons": {
+      "duration_limit": "The maximum meeting duration of your plan has been reached.",
+      "monthly_limit": "The monthly videoconferencing minutes quota is used up.",
+      "concurrent_limit": "The maximum number of simultaneous meetings of your plan has been reached."
+    }
   }
 }
