@@ -137,8 +137,10 @@ class LobbyService:
 
         A user can bypass the lobby if:
         1. The room is public (open to everyone)
-        2. The room has TRUSTED access level and the user is authenticated
-        2. The room has RESTRICTED access level and the user has any role
+        2. The room has TRUSTED access level and the user is trusted for it
+           (authenticated, and of the room organization when
+           TRUSTED_ACCESS_SAME_ORGANIZATION is enabled)
+        3. The room has RESTRICTED access level and the user has any role
 
         Note: Room access levels can change while participants are waiting in the lobby.
         This function only checks the current state and should be called each time
@@ -147,10 +149,7 @@ class LobbyService:
         """
         return (
             room.is_public
-            or (
-                room.access_level == models.RoomAccessLevel.TRUSTED
-                and user.is_authenticated
-            )
+            or room.is_trusted_for(user)
             or (
                 room.access_level == models.RoomAccessLevel.RESTRICTED
                 and user.is_authenticated
