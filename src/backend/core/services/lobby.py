@@ -201,6 +201,7 @@ class LobbyService:
                 configuration=room.configuration,
                 participant_id=participant.id,
                 role=user_role,
+                room_organization_id=room.organization_id_str,
             )
             return participant, livekit_config
 
@@ -223,6 +224,7 @@ class LobbyService:
                 configuration=room.configuration,
                 participant_id=participant.id,
                 role=user_role,
+                room_organization_id=room.organization_id_str,
             )
 
         return participant, livekit_config

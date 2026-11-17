@@ -622,6 +622,11 @@ class Room(Resource):
         """Check if a room is public"""
         return self.access_level == RoomAccessLevel.PUBLIC
 
+    @property
+    def organization_id_str(self):
+        """Organization identifier as a string, None when the room has none."""
+        return str(self.organization_id) if self.organization_id else None
+
     def is_trusted_for(self, user):
         """Whether the user benefits from the trusted access level of this room.
 
