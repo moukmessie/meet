@@ -487,6 +487,18 @@ class Room(Resource):
         null=True,
         editable=False,
     )
+    organization_id = models.UUIDField(
+        _("organization id"),
+        blank=True,
+        null=True,
+        db_index=True,
+        editable=False,
+        help_text=_(
+            "Identifier of the organization owning the room, copied from its "
+            "creator at creation time. Used to restrict trusted access to members "
+            "of the same organization."
+        ),
+    )
 
     # Managers
     objects = RoomManager()
@@ -560,6 +572,35 @@ class Room(Resource):
     def is_public(self):
         """Check if a room is public"""
         return self.access_level == RoomAccessLevel.PUBLIC
+
+    @property
+    def livekit_token_kwargs(self):
+        """Extra token arguments: the room organization, only when known.
+
+        Omitted otherwise, so that token calls stay identical to upstream.
+        """
+        if self.organization_id is None:
+            return {}
+        return {"room_organization_id": str(self.organization_id)}
+
+    def is_trusted_for(self, user):
+        """Whether the user benefits from the trusted access level of this room.
+
+        By default any authenticated user does. With
+        TRUSTED_ACCESS_SAME_ORGANIZATION, the user must also belong to the
+        organization of the room (both identifiers known and equal): users of
+        other organizations go through the lobby like anonymous ones.
+        """
+        if self.access_level != RoomAccessLevel.TRUSTED:
+            return False
+        if not user or not user.is_authenticated:
+            return False
+        if not settings.TRUSTED_ACCESS_SAME_ORGANIZATION:
+            return True
+        return (
+            self.organization_id is not None
+            and user.organization_id == self.organization_id
+        )
 
     @staticmethod
     def generate_unique_pin_code(length):

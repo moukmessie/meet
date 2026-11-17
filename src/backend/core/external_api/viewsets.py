@@ -284,7 +284,7 @@ class RoomViewSet(  # pylint: disable=too-many-ancestors
     def perform_create(self, serializer: serializers.RoomSerializer):
         """Set the current user as owner of the newly created room."""
         ensure_room_creation_allowed(self.request.user)
-        room = serializer.save()
+        room = serializer.save(organization_id=self.request.user.organization_id)
         self.audit_target = room
         models.ResourceAccess.objects.create(
             resource=room,

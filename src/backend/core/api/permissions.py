@@ -5,7 +5,7 @@ from django.http import Http404
 
 from rest_framework import permissions
 
-from ..models import RoleChoices, RoomAccessLevel
+from ..models import RoleChoices
 from ..services.participants_management import (
     ParticipantNotFoundException,
     ParticipantsManagement,
@@ -191,7 +191,8 @@ class ParticipantCapability(permissions.BasePermission):
     """Base permission for in-meeting capabilities opened up to participants.
 
     - Room admins/owners always hold the capability.
-    -  When the room access level is TRUSTED or PUBLIC, any
+    -  When the room access level is PUBLIC, or TRUSTED and the user is
+      trusted for the room (see Room.is_trusted_for), any
       session-authenticated user who is currently connected to the meeting
       holds it too.
 
@@ -217,10 +218,7 @@ class ParticipantCapability(permissions.BasePermission):
         if obj.is_administrator_or_owner(user):
             return True
 
-        is_open_room = obj.access_level in (
-            RoomAccessLevel.TRUSTED,
-            RoomAccessLevel.PUBLIC,
-        )
+        is_open_room = obj.is_public or obj.is_trusted_for(user)
         is_enabled = not self.enabled_setting or getattr(settings, self.enabled_setting)
         if not (is_open_room and is_enabled):
             return False

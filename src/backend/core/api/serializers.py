@@ -194,10 +194,7 @@ class RoomSerializer(serializers.ModelSerializer):
             output["accesses"] = access_serializer.data
 
         should_access_room = (
-            (
-                instance.access_level == models.RoomAccessLevel.TRUSTED
-                and request.user.is_authenticated
-            )
+            instance.is_trusted_for(request.user)
             or role is not None
             or instance.is_public
         )
@@ -211,6 +208,7 @@ class RoomSerializer(serializers.ModelSerializer):
                 username=username,
                 configuration=output["configuration"],
                 role=role,
+                **instance.livekit_token_kwargs,
             )
         else:
             del output["pin_code"]
