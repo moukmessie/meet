@@ -208,6 +208,7 @@ class RoomSerializer(serializers.ModelSerializer):
                 username=username,
                 configuration=output["configuration"],
                 role=role,
+                room_organization_id=instance.organization_id_str,
             )
         else:
             del output["pin_code"]
