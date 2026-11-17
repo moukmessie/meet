@@ -388,7 +388,7 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
         """
         user = self.request.user
         ensure_room_creation_allowed(user)
-        save_kwargs = {}
+        save_kwargs = {"organization_id": user.organization_id}
 
         if (
             "access_level" not in serializer.validated_data

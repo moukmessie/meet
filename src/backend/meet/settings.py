@@ -835,6 +835,11 @@ class Base(Configuration):
     ROOM_CREATION_CHECK_TIMEOUT = values.FloatValue(
         2.0, environ_name="ROOM_CREATION_CHECK_TIMEOUT", environ_prefix=None
     )
+    # Trusted rooms open only to users of the room organization (multi-organization
+    # deployments). Off: any authenticated user benefits from trusted access.
+    TRUSTED_ACCESS_SAME_ORGANIZATION = values.BooleanValue(
+        False, environ_name="TRUSTED_ACCESS_SAME_ORGANIZATION", environ_prefix=None
+    )
     ALLOW_UNREGISTERED_ROOMS = values.BooleanValue(
         True, environ_name="ALLOW_UNREGISTERED_ROOMS", environ_prefix=None
     )
