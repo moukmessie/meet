@@ -1,14 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useRoomContext } from '@livekit/components-react'
 import { RoomEvent, type RemoteParticipant } from 'livekit-client'
-import {
-  decodeMeetingEnding,
-  MEETING_ENDING_TOPIC,
-  type MeetingEnding,
-} from './meetingEnding'
+import { decodeMeetingEnding, type MeetingEnding } from './meetingEnding'
 
 /**
- * Listen to the `meetingEnding` data message sent by the platform.
+ * Listen to the `meetingEnding` notification sent by the platform (data message
+ * without topic). Other notification types are ignored, so the existing
+ * notification listeners are unaffected.
  * Only messages sent by the server (no sender participant) are accepted, so
  * that a participant cannot forge the banner.
  */
@@ -19,11 +17,9 @@ export const useMeetingEnding = (): MeetingEnding | undefined => {
   useEffect(() => {
     const handleDataReceived = (
       payload: Uint8Array,
-      participant?: RemoteParticipant,
-      _kind?: unknown,
-      topic?: string
+      participant?: RemoteParticipant
     ) => {
-      if (topic !== MEETING_ENDING_TOPIC || participant) return
+      if (participant) return
       const decoded = decodeMeetingEnding(payload)
       if (decoded) setMeetingEnding(decoded)
     }

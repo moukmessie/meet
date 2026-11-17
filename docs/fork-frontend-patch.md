@@ -4,13 +4,16 @@ Ce document décrit le patch frontend du fork (branche `patched/vX.Y.Z`).
 
 ## Bannière de fin de réunion (`meetingEnding`)
 
-- La plateforme envoie, via l'API serveur de LiveKit, un message de données de topic
-  `meetingEnding` à tous les participants. Payload JSON :
-  `{"endsAt": "<ISO 8601>", "reason": "duration_limit" | "monthly_limit" | "concurrent_limit"}`.
+- La plateforme envoie, via l'API serveur de LiveKit, un message de données **sans
+  topic** à tous les participants, au format des notifications de Meet :
+  `{"type": "meetingEnding", "data": {"seconds_left": <entier>, "reason": "duration_limit" | "monthly_limit" | "concurrent_limit"}}`.
 - Réception : événement `RoomEvent.DataReceived` de LiveKit, comme les autres
-  notifications de la salle. Seuls les messages **émis par le serveur** (sans
-  participant émetteur) sont acceptés : un participant ne peut pas forger la bannière.
-  Les payloads invalides ou les raisons inconnues sont ignorés.
+  notifications de la salle ; les autres valeurs de `type` sont ignorées et ne gênent
+  pas les écouteurs existants. L'instant de fin est l'instant de réception plus
+  `seconds_left`. Seuls les messages **émis par le serveur** (sans participant
+  émetteur) sont acceptés : un participant ne peut pas forger la bannière. Les payloads
+  invalides, `seconds_left` non entier, négatif ou supérieur à 24 h, et les raisons
+  inconnues sont ignorés.
 - Affichage : bannière `role="status"` (`aria-live="polite"`) avec un compte à rebours à
   la minute (« La réunion se termine dans 4 min », « … dans moins d'une minute »,
   « … maintenant ») et un message propre à chaque raison. Le texte ne change qu'une fois

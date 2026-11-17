@@ -6,40 +6,47 @@ const encode = (value: unknown) =>
     typeof value === 'string' ? value : JSON.stringify(value)
   )
 
+const NOW = Date.parse('2026-11-17T10:00:00Z')
+const notification = (data: unknown, type = 'meetingEnding') =>
+  encode({ type, data })
+
 describe('decodeMeetingEnding', () => {
-  it('decodes a valid payload', () => {
+  it('computes endsAt from the reception time', () => {
     expect(
       decodeMeetingEnding(
-        encode({ endsAt: '2026-11-17T10:00:00Z', reason: 'duration_limit' })
+        notification({ seconds_left: 240, reason: 'duration_limit' }),
+        NOW
       )
-    ).toEqual({
-      endsAt: Date.parse('2026-11-17T10:00:00Z'),
-      reason: 'duration_limit',
-    })
+    ).toEqual({ endsAt: NOW + 240_000, reason: 'duration_limit' })
   })
 
   it.each(['monthly_limit', 'concurrent_limit'])('accepts %s', (reason) => {
     expect(
-      decodeMeetingEnding(encode({ endsAt: '2026-11-17T10:00:00Z', reason }))
-    ).toMatchObject({ reason })
+      decodeMeetingEnding(notification({ seconds_left: 0, reason }), NOW)
+    ).toMatchObject({ reason, endsAt: NOW })
+  })
+
+  it('ignores other notification types', () => {
+    expect(
+      decodeMeetingEnding(notification({ emoji: 'x' }, 'reactionReceived'), NOW)
+    ).toBeUndefined()
   })
 
   it('rejects malformed payloads', () => {
-    expect(decodeMeetingEnding(encode('not json'))).toBeUndefined()
-    expect(decodeMeetingEnding(encode(null))).toBeUndefined()
-    expect(
-      decodeMeetingEnding(encode({ reason: 'duration_limit' }))
-    ).toBeUndefined()
-    expect(
-      decodeMeetingEnding(
-        encode({ endsAt: 'garbage', reason: 'duration_limit' })
-      )
-    ).toBeUndefined()
-    expect(
-      decodeMeetingEnding(
-        encode({ endsAt: '2026-11-17T10:00:00Z', reason: 'x' })
-      )
-    ).toBeUndefined()
+    const reason = 'duration_limit'
+    for (const payload of [
+      encode('not json'),
+      encode(null),
+      encode({ type: 'meetingEnding' }),
+      notification({ reason }),
+      notification({ seconds_left: -1, reason }),
+      notification({ seconds_left: 1.5, reason }),
+      notification({ seconds_left: '60', reason }),
+      notification({ seconds_left: 999_999, reason }),
+      notification({ seconds_left: 60, reason: 'x' }),
+    ]) {
+      expect(decodeMeetingEnding(payload, NOW)).toBeUndefined()
+    }
   })
 })
 
