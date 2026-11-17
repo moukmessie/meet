@@ -79,6 +79,7 @@ from core.services.participants_management import (
     ParticipantsManagementException,
 )
 from core.services.room_creation import RoomCreation
+from core.services.room_creation_check import ensure_room_creation_allowed
 from core.services.room_management import RoomManagement, RoomManagementException
 from core.services.room_roles import (
     RoomRoleError,
@@ -386,6 +387,7 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
         unless the request explicitly provides its own values.
         """
         user = self.request.user
+        ensure_room_creation_allowed(user)
         save_kwargs = {}
 
         if (

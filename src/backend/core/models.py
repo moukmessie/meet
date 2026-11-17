@@ -210,6 +210,17 @@ class User(AbstractBaseUser, BaseModel, auth_models.PermissionsMixin):
             "Configurations applied by default to new rooms created by this user."
         ),
     )
+    organization_id = models.UUIDField(
+        _("organization id"),
+        blank=True,
+        null=True,
+        db_index=True,
+        help_text=_(
+            "Identifier of the user's organization, copied from the OIDC "
+            "'organization' claim at each login. Empty when the user belongs to "
+            "no organization or to several."
+        ),
+    )
     is_device = models.BooleanField(
         _("device"),
         default=False,
