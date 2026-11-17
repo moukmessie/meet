@@ -623,9 +623,14 @@ class Room(Resource):
         return self.access_level == RoomAccessLevel.PUBLIC
 
     @property
-    def organization_id_str(self):
-        """Organization identifier as a string, None when the room has none."""
-        return str(self.organization_id) if self.organization_id else None
+    def livekit_token_kwargs(self):
+        """Extra token arguments: the room organization, only when known.
+
+        Omitted otherwise, so that token calls stay identical to upstream.
+        """
+        if self.organization_id is None:
+            return {}
+        return {"room_organization_id": str(self.organization_id)}
 
     def is_trusted_for(self, user):
         """Whether the user benefits from the trusted access level of this room.

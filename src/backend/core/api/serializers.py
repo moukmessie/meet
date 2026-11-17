@@ -208,7 +208,7 @@ class RoomSerializer(serializers.ModelSerializer):
                 username=username,
                 configuration=output["configuration"],
                 role=role,
-                room_organization_id=instance.organization_id_str,
+                **instance.livekit_token_kwargs,
             )
         else:
             del output["pin_code"]
