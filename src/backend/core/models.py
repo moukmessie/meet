@@ -28,6 +28,7 @@ from timezone_field import TimeZoneField
 
 from . import fields, hashers, utils
 from .recording.enums import FileExtension
+from .services.room_limits import get_room_limits
 from .validators import sub_validator
 
 logger = getLogger(__name__)
@@ -575,13 +576,18 @@ class Room(Resource):
 
     @property
     def livekit_token_kwargs(self):
-        """Extra token arguments: the room organization, only when known.
+        """Extra token arguments: the room organization and limits, only when known.
 
         Omitted otherwise, so that token calls stay identical to upstream.
         """
         if self.organization_id is None:
             return {}
-        return {"room_organization_id": str(self.organization_id)}
+        kwargs = {"room_organization_id": str(self.organization_id)}
+        # May raise RoomEntryRefused; None when the feature is disabled or fails open.
+        limits = get_room_limits(self.organization_id)
+        if limits is not None and limits.max_participants is not None:
+            kwargs["max_participants"] = limits.max_participants
+        return kwargs
 
     def is_trusted_for(self, user):
         """Whether the user benefits from the trusted access level of this room.
