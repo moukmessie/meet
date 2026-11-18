@@ -24,19 +24,37 @@ Ce document décrit le patch frontend du fork (branche `patched/vX.Y.Z`).
 ## Message de refus (HTTP 403)
 
 Quand l'API refuse la création ou l'entrée avec `403 {detail, code, quota}`, le frontend
-affiche un message traduit (écran d'erreur dans la salle, message d'alerte sous le
-bouton de création) :
+affiche un message traduit. Chemins couverts : création depuis l'accueil (message
+d'alerte sous le bouton), récupération de la salle et écran de connexion (écran d'erreur
+avec bouton de retour), écran d'entrée (`Lobby`) : un 403 lors de la récupération de la
+salle ou de `request-entry` affiche le refus au lieu de la salle d'attente, et **arrête
+l'interrogation** de `request-entry` (statut client `refused`).
+
+Le message traduit du code est **toujours** préféré à `detail` (qui n'est pas traduit) ;
+`detail` ne sert que de repli pour un code inconnu, puis un message générique.
 
 | Code | Message |
 |------|---------|
 | `monthly_minutes_exhausted` | Quota mensuel épuisé, avec la date de renouvellement (`quota.resets_at`, fuseau Europe/Paris) |
-| `concurrent_limit` | Nombre maximal de réunions simultanées atteint |
-| `no_organization` | Appartenance à une organisation requise |
+| `concurrent_rooms_limit`, `concurrent_limit` | Nombre maximal de réunions simultanées atteint |
+| `no_organization`, `unknown_organization` | Appartenance à une organisation reconnue requise |
+| `tenant_suspended`, `tenant_closed` | Compte de l'organisation suspendu ou clôturé |
+| `no_active_subscription` | Aucun abonnement actif |
 | `check_unavailable` | Création temporairement indisponible |
+| `entry_refused` | Entrée refusée |
 | `room_creation_refused`, `refused` | Création non autorisée |
 
-Un code inconnu retombe sur `detail`, puis sur un message générique. Code :
-`src/frontend/src/api/apiRefusal.ts`, clés `error.refusal.*` de `rooms.json`.
+Code : `src/frontend/src/api/apiRefusal.ts`, clés `error.refusal.*` de `rooms.json`
+(cinq langues ; un test vérifie que chaque code a une traduction dans chacune).
+
+Côté backend, le refus de création (`RoomCreationRefused`) renvoie aussi `code` (la raison
+de la plateforme, `refused` si elle est absente ou mal formée, `check_unavailable` si la
+plateforme est indisponible, `no_organization` sans organisation) et `quota` quand la
+plateforme le fournit, en plus de `detail`.
+
+Non traité : le refus d'un participant par la limite `max_participants` de LiveKit. Le
+`DisconnectReason` de livekit-client 2.21 n'a pas de valeur « salle pleine » (seulement
+`JOIN_FAILURE`, trop générique) : le message « Disconnected » reste générique.
 
 ## Libellé de l'accès « de confiance »
 

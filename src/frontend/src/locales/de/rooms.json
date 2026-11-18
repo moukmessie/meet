@@ -247,7 +247,13 @@
       "no_organization": "Sie müssen einer Organisation angehören, um eine Besprechung zu erstellen.",
       "check_unavailable": "Das Erstellen von Besprechungen ist vorübergehend nicht verfügbar, bitte versuchen Sie es später erneut.",
       "room_creation_refused": "Sie dürfen keine Besprechung erstellen.",
-      "refused": "Sie dürfen keine Besprechung erstellen."
+      "refused": "Sie dürfen keine Besprechung erstellen.",
+      "concurrent_rooms_limit": "Die maximale Anzahl gleichzeitiger Besprechungen Ihrer Organisation ist erreicht.",
+      "unknown_organization": "Ihre Organisation wird vom Dienst nicht erkannt.",
+      "tenant_suspended": "Das Konto Ihrer Organisation ist gesperrt.",
+      "tenant_closed": "Das Konto Ihrer Organisation ist geschlossen.",
+      "no_active_subscription": "Ihre Organisation hat kein aktives Abonnement.",
+      "entry_refused": "Sie dürfen dieser Besprechung nicht beitreten."
     }
   },
   "isIdleDisconnectModal": {

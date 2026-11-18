@@ -14,7 +14,13 @@ export type ApiRefusal = {
 const KNOWN_CODES = [
   'monthly_minutes_exhausted',
   'concurrent_limit',
+  'concurrent_rooms_limit',
   'no_organization',
+  'unknown_organization',
+  'tenant_suspended',
+  'tenant_closed',
+  'no_active_subscription',
+  'entry_refused',
   'check_unavailable',
   'room_creation_refused',
   'refused',
@@ -66,8 +72,9 @@ export const formatResetDate = (
 type Translate = (key: string, options?: Record<string, unknown>) => string
 
 /**
- * Build the user-facing message of a refusal: translated message when the code
- * is known, otherwise the server detail, otherwise a generic message.
+ * Build the user-facing message of a refusal. The translated message of a known
+ * code is always preferred to the server `detail` (which is not translated);
+ * `detail` is only the fallback for an unknown code, then a generic message.
  */
 export const getRefusalMessage = (
   refusal: ApiRefusal,
