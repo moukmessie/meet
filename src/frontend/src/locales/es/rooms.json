@@ -237,6 +237,17 @@
       "helpLinkLabel": "Problema de presentación",
       "closeButton": "Ignorar",
       "newTab": "Nueva ventana"
+    },
+    "refusal": {
+      "title": "Acceso denegado",
+      "generic": "No se pudo crear la reunión ni unirse a ella.",
+      "monthly_minutes_exhausted": "La cuota mensual de minutos de videoconferencia está agotada. Se renueva el {{date}}.",
+      "monthly_minutes_exhausted_noDate": "La cuota mensual de minutos de videoconferencia está agotada.",
+      "concurrent_limit": "Se ha alcanzado el número máximo de reuniones simultáneas de su organización.",
+      "no_organization": "Debe pertenecer a una organización para crear una reunión.",
+      "check_unavailable": "La creación de reuniones no está disponible temporalmente, inténtelo de nuevo más tarde.",
+      "room_creation_refused": "No tiene permiso para crear una reunión.",
+      "refused": "No tiene permiso para crear una reunión."
     }
   },
   "isIdleDisconnectModal": {
@@ -640,8 +651,8 @@
           "description": "Cualquier persona puede unirse a la reunión sin autorización."
         },
         "trusted": {
-          "label": "Abierta a personas de confianza",
-          "description": "Las personas autenticadas no tienen que pedir permiso para unirse a la reunión."
+          "label": "Abierta a miembros de la organización",
+          "description": "Los miembros autenticados de la organización no tienen que pedir permiso para unirse a la reunión."
         },
         "restricted": {
           "label": "Restringida",
@@ -863,5 +874,17 @@
   },
   "participantTile": {
     "screenShare": "Pantalla de {{name}}"
+  },
+  "meetingEnding": {
+    "title": "Fin de la reunión",
+    "minute_one": "La reunión termina en {{count}} min",
+    "minute_other": "La reunión termina en {{count}} min",
+    "lessThanMinute": "La reunión termina en menos de un minuto",
+    "ended": "La reunión termina ahora",
+    "reasons": {
+      "duration_limit": "Se ha alcanzado la duración máxima de las reuniones de su plan.",
+      "monthly_limit": "La cuota mensual de minutos de videoconferencia está agotada.",
+      "concurrent_limit": "Se ha alcanzado el número máximo de reuniones simultáneas de su plan."
+    }
   }
 }

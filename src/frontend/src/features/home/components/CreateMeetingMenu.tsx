@@ -11,13 +11,23 @@ import { menuRecipe } from '@/primitives/menuRecipe'
 import { ApiRoom } from '@/features/rooms/api/ApiRoom'
 import { useSnapshot } from 'valtio'
 import { userStore } from '@/stores/user'
+import { getApiRefusal, getRefusalMessage } from '@/api/apiRefusal'
+import { css } from '@/styled-system/css'
 
 export const CreateMeetingMenu = () => {
   const { username } = useSnapshot(userStore)
 
-  const { t } = useTranslation('home')
+  const { t, i18n } = useTranslation('home')
+  const { t: tRooms } = useTranslation('rooms')
   const { mutateAsync: createRoom } = useCreateRoom()
   const [laterRoom, setLaterRoom] = useState<null | ApiRoom>(null)
+  const [refusalMessage, setRefusalMessage] = useState<string | null>(null)
+
+  const handleCreateError = (error: unknown) => {
+    const refusal = getApiRefusal(error)
+    if (!refusal) throw error
+    setRefusalMessage(getRefusalMessage(refusal, tRooms, i18n.language))
+  }
 
   return (
     <>
@@ -30,11 +40,14 @@ export const CreateMeetingMenu = () => {
             className={menuRecipe({ icon: true, variant: 'light' }).item}
             onAction={() => {
               const slug = generateRoomId()
-              createRoom({ slug, username }).then((data) =>
-                navigateTo('room', data.slug, {
-                  state: { create: true, initialRoomData: data },
-                })
-              )
+              setRefusalMessage(null)
+              createRoom({ slug, username })
+                .then((data) =>
+                  navigateTo('room', data.slug, {
+                    state: { create: true, initialRoomData: data },
+                  })
+                )
+                .catch(handleCreateError)
             }}
             data-attr="create-option-instant"
           >
@@ -45,7 +58,10 @@ export const CreateMeetingMenu = () => {
             className={menuRecipe({ icon: true, variant: 'light' }).item}
             onAction={() => {
               const slug = generateRoomId()
-              createRoom({ slug, username }).then(setLaterRoom)
+              setRefusalMessage(null)
+              createRoom({ slug, username })
+                .then(setLaterRoom)
+                .catch(handleCreateError)
             }}
             data-attr="create-option-later"
           >
@@ -54,6 +70,14 @@ export const CreateMeetingMenu = () => {
           </MenuItem>
         </RACMenu>
       </Menu>
+      {refusalMessage && (
+        <p
+          role="alert"
+          className={css({ marginTop: '0.5rem', color: 'danger.700' })}
+        >
+          {refusalMessage}
+        </p>
+      )}
       <LaterMeetingDialog
         room={laterRoom}
         onOpenChange={() => setLaterRoom(null)}

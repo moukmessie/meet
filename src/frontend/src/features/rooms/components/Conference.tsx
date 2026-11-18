@@ -44,6 +44,8 @@ import { userPreferencesStore } from '@/stores/userPreferences'
 import { userStore } from '@/stores/user'
 import { WatchMediaDeviceErrors } from './WatchMediaDeviceErrors'
 import { MeetDevtools } from '@/features/devtools'
+import { MeetingEndingBanner } from '@/features/meetingEnding/MeetingEndingBanner'
+import { getApiRefusal, getRefusalMessage } from '@/api/apiRefusal'
 import { VOICE_AUDIO_CONSTRAINTS } from '@/features/rooms/livekit/utils/constants'
 import { resolveAudioOutputDeviceId } from '@/features/rooms/utils/resolveAudioOutputDeviceId'
 
@@ -77,6 +79,7 @@ export const Conference = ({
     mutateAsync: createRoom,
     status: createStatus,
     isError: isCreateError,
+    error: createError,
   } = useCreateRoom({
     onSuccess: (data) => {
       queryClient.setQueryData(fetchKey, data)
@@ -201,7 +204,18 @@ export const Conference = ({
     return livekit_url
   }, [apiConfig?.livekit])
 
-  const { t } = useTranslation('rooms')
+  const { t, i18n } = useTranslation('rooms')
+
+  const refusal = getApiRefusal(createError) ?? getApiRefusal(fetchError)
+  if (refusal) {
+    return (
+      <ErrorScreen
+        title={t('error.refusal.title')}
+        body={getRefusalMessage(refusal, t, i18n.language)}
+      />
+    )
+  }
+
   if (fetchError?.statusCode == 410) {
     return (
       <ErrorScreen
@@ -221,7 +235,7 @@ export const Conference = ({
     )
   }
 
-  // Some clients (like DINUM) operate in bandwidth-constrained environments
+  // Some clients operate in bandwidth-constrained environments
   // These settings help ensure successful connections in poor network conditions
   const connectOptions = {
     maxRetries: 5, // Default: 1. Only for unreachable server scenarios
@@ -315,6 +329,7 @@ export const Conference = ({
           {!isMobile && <InviteDialog mode={mode} />}
           <PictureInPictureConference />
           <MeetDevtools />
+          <MeetingEndingBanner />
         </LiveKitRoom>
       </Screen>
     </QueryAware>

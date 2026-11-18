@@ -168,7 +168,7 @@ export const Header = () => {
                         display: { base: 'none', xsm: 'block' },
                       })}
                     >
-                      <LoginButton proConnectHint={false} />
+                      <LoginButton />
                       <LoginHint />
                     </div>
                   </>
