@@ -52,3 +52,11 @@ pas les réunions.
 
 Vider `ROOM_LIMITS_URL` désactive la fonction : plus aucun appel, jetons identiques à
 l'amont.
+
+## Refus de création de salle
+
+Le refus du contrôle de création renvoie `403` avec
+`{"detail": "...", "code": "<raison>", "quota": {...}}`. `code` est la raison renvoyée
+par le service (`refused` si elle est absente ou n'a pas la forme `[a-z][a-z0-9_]*`),
+`check_unavailable` si le service est indisponible, `no_organization` sans organisation.
+`quota` n'est présent que si le service le fournit.
