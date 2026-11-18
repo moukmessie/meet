@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { keys } from '@/api/queryKeys'
-import { ApiError } from '@/api/ApiError'
-import { getApiRefusal, type ApiRefusal } from '@/api/apiRefusal'
+import { type ApiRefusal } from '@/api/apiRefusal'
 import {
   requestEntry,
   ApiLobbyStatus,
   type ApiRequestEntry,
 } from '../api/requestEntry'
 import { setLobbyParticipantId } from '@/stores/lobby'
+import { getEntryOutcome } from '../utils/entryError'
 
 export const WAIT_TIMEOUT_MS = 600000 // 10 minutes
 export const POLL_INTERVAL_MS = 3_000
@@ -62,19 +62,16 @@ export const useLobby = ({
         }
         return response
       } catch (error) {
-        // The room was deleted while waiting, stop polling
-        if (error instanceof ApiError && error.statusCode === 410) {
+        // Room deleted or entry refused (e.g. quota used up), for anonymous
+        // users too: stop polling, show why
+        const outcome = getEntryOutcome(error)
+        if (outcome) {
           clearWaitingTimeout()
-          setStatus(ApiLobbyStatus.DELETED)
-          return { status: ApiLobbyStatus.DELETED }
-        }
-        // The entry is refused (e.g. quota used up): stop polling, show why
-        const apiRefusal = getApiRefusal(error)
-        if (apiRefusal) {
-          clearWaitingTimeout()
-          setRefusal(apiRefusal)
-          setStatus(ApiLobbyStatus.REFUSED)
-          return { status: ApiLobbyStatus.REFUSED }
+          if (outcome.status === ApiLobbyStatus.REFUSED) {
+            setRefusal(outcome.refusal)
+          }
+          setStatus(outcome.status)
+          return { status: outcome.status }
         }
         throw error
       }
