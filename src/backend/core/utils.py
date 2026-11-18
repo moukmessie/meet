@@ -31,6 +31,7 @@ from livekit.api import (  # pylint: disable=E0611
     AccessToken,
     ListRoomsRequest,
     LiveKitAPI,
+    RoomConfiguration,
     SendDataRequest,
     TwirpError,
     VideoGrants,
@@ -71,6 +72,7 @@ def generate_token(  # noqa: PLR0917
     participant_id: Optional[str] = None,
     ttl: Optional[timedelta] = None,
     room_organization_id: Optional[str] = None,
+    max_participants: Optional[int] = None,
 ) -> str:
     """Generate a LiveKit access token for a user in a specific room.
 
@@ -90,6 +92,8 @@ def generate_token(  # noqa: PLR0917
         room_organization_id (Optional[str]): Organization owning the room, exposed
                          as the `room_organization_id` participant attribute so that
                          webhook consumers can attribute the meeting. Omitted if None.
+        max_participants (Optional[int]): Participant limit of the room, set in the
+                         token room configuration. Omitted if None.
 
     Returns:
         str: The LiveKit JWT access token.
@@ -146,6 +150,10 @@ def generate_token(  # noqa: PLR0917
         .with_name(display_name)
         .with_attributes(attributes)
     )
+    if max_participants is not None:
+        token = token.with_room_config(
+            RoomConfiguration(max_participants=max_participants)
+        )
     if ttl is not None:
         token = token.with_ttl(ttl)
 
@@ -161,6 +169,7 @@ def generate_livekit_config(  # noqa: PLR0917
     configuration: Optional[dict] = None,
     participant_id: Optional[str] = None,
     room_organization_id: Optional[str] = None,
+    max_participants: Optional[int] = None,
 ) -> dict:
     """Generate LiveKit configuration for room access.
 
@@ -174,6 +183,7 @@ def generate_livekit_config(  # noqa: PLR0917
         participant_id (Optional[str]): Stable identifier for anonymous users;
                          used as identity when user.is_anonymous.
         room_organization_id (Optional[str]): Organization owning the room.
+        max_participants (Optional[int]): Participant limit of the room.
 
     Returns:
         dict: LiveKit configuration with URL, room and access token
@@ -187,6 +197,8 @@ def generate_livekit_config(  # noqa: PLR0917
     extra = {}
     if room_organization_id is not None:
         extra["room_organization_id"] = room_organization_id
+    if max_participants is not None:
+        extra["max_participants"] = max_participants
 
     return {
         "url": settings.LIVEKIT_CONFIGURATION["url"],

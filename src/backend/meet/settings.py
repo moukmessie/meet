@@ -843,6 +843,17 @@ class Base(Configuration):
     ROOM_CREATION_CHECK_TIMEOUT = values.FloatValue(
         2.0, environ_name="ROOM_CREATION_CHECK_TIMEOUT", environ_prefix=None
     )
+    # External room limits (multi-organization deployments), applied to LiveKit
+    # tokens. Empty URL: no limits. The token defaults to ROOM_CREATION_CHECK_TOKEN.
+    ROOM_LIMITS_URL = values.Value(
+        None, environ_name="ROOM_LIMITS_URL", environ_prefix=None
+    )
+    ROOM_LIMITS_TOKEN = SecretFileValue(
+        None, environ_name="ROOM_LIMITS_TOKEN", environ_prefix=None
+    )
+    ROOM_LIMITS_TIMEOUT = values.FloatValue(
+        2.0, environ_name="ROOM_LIMITS_TIMEOUT", environ_prefix=None
+    )
     # Trusted rooms open only to users of the room organization (multi-organization
     # deployments). Off: any authenticated user benefits from trusted access.
     TRUSTED_ACCESS_SAME_ORGANIZATION = values.BooleanValue(
