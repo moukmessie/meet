@@ -247,7 +247,13 @@
       "no_organization": "U moet tot een organisatie behoren om een vergadering aan te maken.",
       "check_unavailable": "Vergaderingen aanmaken is tijdelijk niet beschikbaar, probeer het later opnieuw.",
       "room_creation_refused": "U mag geen vergadering aanmaken.",
-      "refused": "U mag geen vergadering aanmaken."
+      "refused": "U mag geen vergadering aanmaken.",
+      "concurrent_rooms_limit": "Het maximale aantal gelijktijdige vergaderingen van uw organisatie is bereikt.",
+      "unknown_organization": "Uw organisatie wordt door de dienst niet herkend.",
+      "tenant_suspended": "Het account van uw organisatie is geblokkeerd.",
+      "tenant_closed": "Het account van uw organisatie is gesloten.",
+      "no_active_subscription": "Uw organisatie heeft geen actief abonnement.",
+      "entry_refused": "U mag niet deelnemen aan deze vergadering."
     }
   },
   "isIdleDisconnectModal": {

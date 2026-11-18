@@ -247,7 +247,13 @@
       "no_organization": "Debe pertenecer a una organización para crear una reunión.",
       "check_unavailable": "La creación de reuniones no está disponible temporalmente, inténtelo de nuevo más tarde.",
       "room_creation_refused": "No tiene permiso para crear una reunión.",
-      "refused": "No tiene permiso para crear una reunión."
+      "refused": "No tiene permiso para crear una reunión.",
+      "concurrent_rooms_limit": "Se ha alcanzado el número máximo de reuniones simultáneas de su organización.",
+      "unknown_organization": "El servicio no reconoce su organización.",
+      "tenant_suspended": "La cuenta de su organización está suspendida.",
+      "tenant_closed": "La cuenta de su organización está cerrada.",
+      "no_active_subscription": "Su organización no tiene una suscripción activa.",
+      "entry_refused": "No tiene permiso para unirse a esta reunión."
     }
   },
   "isIdleDisconnectModal": {

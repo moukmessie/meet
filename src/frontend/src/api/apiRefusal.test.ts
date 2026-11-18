@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { ApiError } from './ApiError'
+import en from '../locales/en/rooms.json'
+import fr from '../locales/fr/rooms.json'
+import de from '../locales/de/rooms.json'
+import es from '../locales/es/rooms.json'
+import nl from '../locales/nl/rooms.json'
 import { formatResetDate, getApiRefusal, getRefusalMessage } from './apiRefusal'
 
 const t = (key: string, options?: Record<string, unknown>) =>
@@ -80,5 +85,74 @@ describe('getRefusalMessage', () => {
       getRefusalMessage({ code: 'other', detail: 'Server' }, t, 'fr')
     ).toBe('Server')
     expect(getRefusalMessage({}, t, 'fr')).toBe('error.refusal.generic')
+  })
+})
+
+// Every code the backend can emit: the platform reasons forwarded by the room
+// creation check and by the room limits, plus the backend's own codes.
+const BACKEND_CODES = [
+  'monthly_minutes_exhausted',
+  'concurrent_rooms_limit',
+  'concurrent_limit',
+  'unknown_organization',
+  'tenant_suspended',
+  'tenant_closed',
+  'no_active_subscription',
+  'no_organization',
+  'check_unavailable',
+  'room_creation_refused',
+  'entry_refused',
+  'refused',
+]
+
+describe('refusal translations', () => {
+  const locales = { en, fr, de, es, nl }
+
+  it.each(Object.entries(locales))(
+    'translates every backend code in %s',
+    (_language, locale) => {
+      const messages = locale.error.refusal as Record<string, string>
+      for (const code of BACKEND_CODES) {
+        expect(messages[code], code).toBeTruthy()
+      }
+      expect(messages.title).toBeTruthy()
+      expect(messages.generic).toBeTruthy()
+      expect(messages.monthly_minutes_exhausted).toContain('{{date}}')
+    }
+  )
+
+  it('always prefers the translation of a known code to the detail', () => {
+    for (const code of BACKEND_CODES) {
+      const message = getRefusalMessage(
+        { code, detail: 'Détail serveur' },
+        t,
+        'en'
+      )
+      expect(message).not.toBe('Détail serveur')
+      expect(message).toContain('error.refusal.')
+    }
+  })
+
+  it('uses the detail only for an unknown code', () => {
+    expect(
+      getRefusalMessage(
+        { code: 'brand_new', detail: 'Détail serveur' },
+        t,
+        'en'
+      )
+    ).toBe('Détail serveur')
+  })
+
+  it('extracts the refusal of a 403 without detail', () => {
+    const error = new ApiError(403, {
+      code: 'tenant_suspended',
+      quota: { resets_at: '2026-12-01T00:00:00Z' },
+    })
+    expect(getApiRefusal(error)?.code).toBe('tenant_suspended')
+  })
+
+  it('does not treat a deleted room (410) or a server error as a refusal', () => {
+    expect(getApiRefusal(new ApiError(410, { code: 'x' }))).toBeUndefined()
+    expect(getApiRefusal(new ApiError(500, { code: 'x' }))).toBeUndefined()
   })
 })

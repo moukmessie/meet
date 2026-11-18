@@ -247,7 +247,13 @@
       "no_organization": "You must belong to an organization to create a meeting.",
       "check_unavailable": "Meeting creation is temporarily unavailable, please try again later.",
       "room_creation_refused": "You are not allowed to create a meeting.",
-      "refused": "You are not allowed to create a meeting."
+      "refused": "You are not allowed to create a meeting.",
+      "concurrent_rooms_limit": "The maximum number of simultaneous meetings of your organization has been reached.",
+      "unknown_organization": "Your organization is not recognized by the service.",
+      "tenant_suspended": "Your organization's account is suspended.",
+      "tenant_closed": "Your organization's account is closed.",
+      "no_active_subscription": "Your organization has no active subscription.",
+      "entry_refused": "You are not allowed to join this meeting."
     }
   },
   "isIdleDisconnectModal": {

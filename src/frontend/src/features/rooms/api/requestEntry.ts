@@ -15,6 +15,8 @@ export enum ApiLobbyStatus {
   ACCEPTED = 'accepted',
   // Client-side only: the room was deleted while waiting
   DELETED = 'deleted',
+  // Client-side only: the API refused the entry (HTTP 403, e.g. quota used up)
+  REFUSED = 'refused',
 }
 
 export interface ApiRequestEntry {

@@ -105,6 +105,8 @@ export const Conference = ({
         }
         // A deleted room can't be recreated, surface the error instead
         if (error.statusCode == '410') throw error
+        // A refused entry (e.g. quota used up) is shown, not swallowed
+        if (getApiRefusal(error)) throw error
       }),
     retry: false,
   })
