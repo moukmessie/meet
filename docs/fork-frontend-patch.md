@@ -7,13 +7,26 @@ Ce document décrit le patch frontend du fork (branche `patched/vX.Y.Z`).
 - La plateforme envoie, via l'API serveur de LiveKit, un message de données **sans
   topic** à tous les participants, au format des notifications de Meet :
   `{"type": "meetingEnding", "data": {"seconds_left": <entier>, "reason": "duration_limit" | "monthly_limit" | "concurrent_limit"}}`.
-- Réception : événement `RoomEvent.DataReceived` de LiveKit, comme les autres
-  notifications de la salle ; les autres valeurs de `type` sont ignorées et ne gênent
+- Réception : paquets de données de LiveKit (voir « Authenticité »), sans topic ; les
+  autres valeurs de `type` sont ignorées et ne gênent
   pas les écouteurs existants. L'instant de fin est l'instant de réception plus
-  `seconds_left`. Seuls les messages **émis par le serveur** (sans participant
-  émetteur) sont acceptés : un participant ne peut pas forger la bannière. Les payloads
-  invalides, `seconds_left` non entier, négatif ou supérieur à 24 h, et les raisons
-  inconnues sont ignorés.
+  `seconds_left`. Les payloads invalides, `seconds_left` non entier, négatif ou supérieur
+  à 24 h, et les raisons inconnues sont ignorés.
+- Authenticité : seuls les messages **émis par l'API serveur** de LiveKit
+  (`RoomService.SendData`) sont acceptés, pour qu'un participant ne puisse pas forger la
+  bannière. Le critère est lu sur le **paquet brut** (`room.engine`, événement
+  `EngineEvent.DataPacketReceived`) : le serveur LiveKit pose l'identité de l'émetteur
+  (`participantIdentity`, `participantSid`) sur tout paquet relayé depuis un client, sans
+  que le client puisse l'écraser, et les laisse vides pour un paquet `SendData`. Le
+  paramètre `participant` de `RoomEvent.DataReceived` ne convient **pas** : il vaut
+  `undefined` pour un message serveur, mais aussi pour un message client reçu avant que
+  l'émetteur soit enregistré dans `room.remoteParticipants` (mesuré : environ 3 s après
+  sa connexion), d'où une fenêtre de forge après chaque arrivée.
+  Limites : `room.engine` est une API interne de livekit-client (à revérifier à chaque
+  montée de version ; le test avec un vrai `Room` échoue si le comportement change, et
+  sans moteur le hook n'accepte rien) ; le critère suppose un serveur LiveKit qui
+  estampille l'émetteur (vérifié avec livekit-server 1.13.11). Le format du message n'a
+  pas changé.
 - Affichage : bannière `role="status"` (`aria-live="polite"`) avec un compte à rebours à
   la minute (« La réunion se termine dans 4 min », « … dans moins d'une minute »,
   « … maintenant ») et un message propre à chaque raison. Le texte ne change qu'une fois
