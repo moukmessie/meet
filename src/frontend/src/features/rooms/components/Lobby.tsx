@@ -8,6 +8,8 @@ import { H } from '@/primitives/H'
 import { Field } from '@/primitives/Field'
 import { Form, Text } from '@/primitives'
 import { Spinner } from '@/primitives/Spinner'
+import { BackToHome } from '@/components/BackToHome'
+import { getApiRefusal, getRefusalMessage } from '@/api/apiRefusal'
 import { keys } from '@/api/queryKeys'
 import { queryClient } from '@/api/queryClient'
 import { useLoginHint } from '@/hooks/useLoginHint'
@@ -27,6 +29,7 @@ export const Lobby = ({
   enterRoom: () => void
 }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'join' })
+  const { t: tRooms, i18n } = useTranslation('rooms')
 
   const { data: configData } = useConfig()
   const { isLoggedIn, user } = useUser()
@@ -65,7 +68,7 @@ export const Lobby = ({
     enterRoom()
   }
 
-  const { status, startWaiting } = useLobby({
+  const { status, startWaiting, refusal, refuse } = useLobby({
     roomId,
     username: username || user?.full_name || 'anonymous',
     onAccepted: handleAccepted,
@@ -77,6 +80,13 @@ export const Lobby = ({
     const { data, error } = await refetchRoom()
 
     if (error?.statusCode == 410) return
+
+    // Refused (e.g. monthly quota used up): do not wait for an authorization
+    const apiRefusal = getApiRefusal(error)
+    if (apiRefusal) {
+      refuse(apiRefusal)
+      return
+    }
 
     if (!data?.livekit) {
       // Display a message to inform the user that by logging in, they won't have to wait for room entry approval.
@@ -94,6 +104,19 @@ export const Lobby = ({
   const lobbyStatus = isRoomDeleted ? ApiLobbyStatus.DELETED : status
 
   switch (lobbyStatus) {
+    case ApiLobbyStatus.REFUSED:
+      return (
+        <VStack alignItems="center" textAlign="center">
+          <H lvl={1} margin={false} centered>
+            {tRooms('error.refusal.title')}
+          </H>
+          <Text as="p" variant="note" role="alert">
+            {getRefusalMessage(refusal ?? {}, tRooms, i18n.language)}
+          </Text>
+          <BackToHome size="sm" />
+        </VStack>
+      )
+
     case ApiLobbyStatus.DELETED:
       return (
         <VStack alignItems="center" textAlign="center">

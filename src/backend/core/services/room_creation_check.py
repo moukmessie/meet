@@ -9,6 +9,7 @@ the platform all refuse the creation. Existing rooms are never affected.
 """
 
 import logging
+import re
 
 from django.conf import settings
 
@@ -18,11 +19,27 @@ from rest_framework.exceptions import PermissionDenied
 logger = logging.getLogger(__name__)
 
 
+REASON_PATTERN = re.compile(r"^[a-z][a-z0-9_]{0,63}$")
+
+
 class RoomCreationRefused(PermissionDenied):
-    """The user is not allowed to create a room."""
+    """The user is not allowed to create a room.
+
+    The 403 body carries the machine-readable ``code`` (and the ``quota`` of the
+    organization when the platform provides one) next to the human ``detail``, so
+    that clients can show a translated message.
+    """
 
     default_detail = "You are not allowed to create a room."
     default_code = "room_creation_refused"
+
+    def __init__(self, detail=None, code=None, quota=None):
+        super().__init__(detail=detail, code=code)
+        body = {"detail": self.detail, "code": code or self.default_code}
+        if quota:
+            body["quota"] = quota
+        # Set after init: DRF would turn the numbers of the quota into strings.
+        self.detail = body
 
 
 def ensure_room_creation_allowed(user):
@@ -55,4 +72,9 @@ def ensure_room_creation_allowed(user):
 
     if not isinstance(result, dict) or result.get("allowed") is not True:
         reason = result.get("reason") if isinstance(result, dict) else None
-        raise RoomCreationRefused(code=str(reason or "refused"))
+        quota = result.get("quota") if isinstance(result, dict) else None
+        if not isinstance(reason, str) or not REASON_PATTERN.match(reason):
+            reason = "refused"
+        raise RoomCreationRefused(
+            code=reason, quota=quota if isinstance(quota, dict) else None
+        )
