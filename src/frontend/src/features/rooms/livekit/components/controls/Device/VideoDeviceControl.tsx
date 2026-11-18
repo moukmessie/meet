@@ -86,7 +86,7 @@ export const VideoDeviceControl = ({
      * 5 - No processor is applied to the camera
      * Expected: The processor is applied.
      *
-     * See https://github.com/numerique-gouv/meet/pull/309#issuecomment-2622404121
+     * See upstream pull request #309 (suitenumerique/meet)
      */
     const processor =
       BackgroundProcessorFactory.fromProcessorConfig(processorConfig)

@@ -1,7 +1,7 @@
 {
   "createMeeting": {
-    "createButton": "Créer un lien Visio",
-    "joinButton": "Participer avec Visio",
+    "createButton": "Créer un lien de visioconférence",
+    "joinButton": "Participer à la visioconférence",
     "copyLinkTooltip": "Copier le lien",
     "resetLabel": "Réinitialiser",
     "participantLimit": "Jusqu'à 150 participants.",

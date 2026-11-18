@@ -19,7 +19,11 @@ Ces informations vivent dans des dépôts privés.
 `.github/workflows/fork-patched-ci.yml` : lint et tests backend sur les PR et les pushs
 des branches `patched/**` (les workflows amont ne voient pas les branches contenant un
 `/`), puis image backend patchée `ghcr.io/moukmessie/meet-backend` (tag `sha-…`, et
-`vX.Y.Z-patched.N` sur les tags), digest dans le résumé du job.
+`vX.Y.Z-patched.N` sur les tags), digest dans le résumé du job. Le frontend est
+vérifié (format, lint, tests, build) puis publié de la même façon sous
+`ghcr.io/moukmessie/meet-frontend` (cible `frontend-production`, `Dockerfile` dans
+`src/frontend/`). Le frontend est construit avec `VITE_APP_TITLE=Meet` et une API de
+même origine.
 
 Contrôles amont sans objet pour le fork : `check-changelog` (pas d'entrée de
 CHANGELOG pour les patchs, pour faciliter le rebase) et `lint-spell-mistakes` (signale

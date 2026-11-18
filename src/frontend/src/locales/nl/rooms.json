@@ -237,6 +237,17 @@
       "helpLinkLabel": "Presentatieprobleem",
       "closeButton": "Negeren",
       "newTab": "Nieuw venster"
+    },
+    "refusal": {
+      "title": "Toegang geweigerd",
+      "generic": "De vergadering kon niet worden aangemaakt of betreden.",
+      "monthly_minutes_exhausted": "Het maandelijkse quotum aan videovergaderminuten is op. Het wordt vernieuwd op {{date}}.",
+      "monthly_minutes_exhausted_noDate": "Het maandelijkse quotum aan videovergaderminuten is op.",
+      "concurrent_limit": "Het maximale aantal gelijktijdige vergaderingen van uw organisatie is bereikt.",
+      "no_organization": "U moet tot een organisatie behoren om een vergadering aan te maken.",
+      "check_unavailable": "Vergaderingen aanmaken is tijdelijk niet beschikbaar, probeer het later opnieuw.",
+      "room_creation_refused": "U mag geen vergadering aanmaken.",
+      "refused": "U mag geen vergadering aanmaken."
     }
   },
   "isIdleDisconnectModal": {
@@ -641,8 +652,8 @@
           "description": "Niemand hoeft toestemming te vragen om deel te nemen aan de vergadering."
         },
         "trusted": {
-          "label": "Open voor vertrouwde personen",
-          "description": "Geauthenticeerde personen hoeven geen toestemming te vragen om deel te nemen aan de vergadering."
+          "label": "Open voor leden van de organisatie",
+          "description": "Geauthenticeerde leden van de organisatie hoeven geen toestemming te vragen om deel te nemen aan de vergadering."
         },
         "restricted": {
           "label": "Beperkt",
@@ -868,5 +879,17 @@
   },
   "participantTile": {
     "screenShare": "{{name}} scherm"
+  },
+  "meetingEnding": {
+    "title": "Einde van de vergadering",
+    "minute_one": "De vergadering eindigt over {{count}} min",
+    "minute_other": "De vergadering eindigt over {{count}} min",
+    "lessThanMinute": "De vergadering eindigt over minder dan een minuut",
+    "ended": "De vergadering eindigt nu",
+    "reasons": {
+      "duration_limit": "De maximale vergaderduur van uw abonnement is bereikt.",
+      "monthly_limit": "Het maandelijkse quotum aan videovergaderminuten is op.",
+      "concurrent_limit": "Het maximale aantal gelijktijdige vergaderingen van uw abonnement is bereikt."
+    }
   }
 }

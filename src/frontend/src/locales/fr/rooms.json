@@ -237,6 +237,17 @@
       "helpLinkLabel": "Problème de présentation",
       "closeButton": "Ignorer",
       "newTab": "Nouvelle fenêtre"
+    },
+    "refusal": {
+      "title": "Accès refusé",
+      "generic": "La réunion n'a pas pu être créée ou rejointe.",
+      "monthly_minutes_exhausted": "Le quota mensuel de minutes de visioconférence est épuisé. Il se renouvelle le {{date}}.",
+      "monthly_minutes_exhausted_noDate": "Le quota mensuel de minutes de visioconférence est épuisé.",
+      "concurrent_limit": "Le nombre maximal de réunions simultanées de votre organisation est atteint.",
+      "no_organization": "Vous devez appartenir à une organisation pour créer une réunion.",
+      "check_unavailable": "La création de réunion est temporairement indisponible, veuillez réessayer plus tard.",
+      "room_creation_refused": "Vous n'êtes pas autorisé à créer une réunion.",
+      "refused": "Vous n'êtes pas autorisé à créer une réunion."
     }
   },
   "isIdleDisconnectModal": {
@@ -641,8 +652,8 @@
           "description": "Tout le monde peut rejoindre la réunion sans autorisation."
         },
         "trusted": {
-          "label": "Ouvrir aux personnes de confiance",
-          "description": "Les personnes authentifiées n'ont pas à demander pour rejoindre la réunion."
+          "label": "Ouvrir aux membres de l'organisation",
+          "description": "Les membres authentifiés de l'organisation n'ont pas à demander pour rejoindre la réunion."
         },
         "restricted": {
           "label": "Restreindre",
@@ -868,5 +879,17 @@
   },
   "participantTile": {
     "screenShare": "Écran de {{name}}"
+  },
+  "meetingEnding": {
+    "title": "Fin de réunion",
+    "minute_one": "La réunion se termine dans {{count}} min",
+    "minute_other": "La réunion se termine dans {{count}} min",
+    "lessThanMinute": "La réunion se termine dans moins d'une minute",
+    "ended": "La réunion se termine maintenant",
+    "reasons": {
+      "duration_limit": "La durée maximale des réunions de votre offre est atteinte.",
+      "monthly_limit": "Le quota mensuel de minutes de visioconférence est épuisé.",
+      "concurrent_limit": "Le nombre maximal de réunions simultanées de votre offre est atteint."
+    }
   }
 }

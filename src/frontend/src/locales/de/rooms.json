@@ -237,6 +237,17 @@
       "helpLinkLabel": "Bildschirmfreigabeproblem",
       "closeButton": "Schließen",
       "newTab": "Neuer Tab"
+    },
+    "refusal": {
+      "title": "Zugriff verweigert",
+      "generic": "Die Besprechung konnte nicht erstellt oder betreten werden.",
+      "monthly_minutes_exhausted": "Das monatliche Kontingent an Videokonferenzminuten ist aufgebraucht. Es wird am {{date}} erneuert.",
+      "monthly_minutes_exhausted_noDate": "Das monatliche Kontingent an Videokonferenzminuten ist aufgebraucht.",
+      "concurrent_limit": "Die maximale Anzahl gleichzeitiger Besprechungen Ihrer Organisation ist erreicht.",
+      "no_organization": "Sie müssen einer Organisation angehören, um eine Besprechung zu erstellen.",
+      "check_unavailable": "Das Erstellen von Besprechungen ist vorübergehend nicht verfügbar, bitte versuchen Sie es später erneut.",
+      "room_creation_refused": "Sie dürfen keine Besprechung erstellen.",
+      "refused": "Sie dürfen keine Besprechung erstellen."
     }
   },
   "isIdleDisconnectModal": {
@@ -641,8 +652,8 @@
           "description": "Niemand muss um Zugang zum Meeting bitten."
         },
         "trusted": {
-          "label": "Offen für vertrauenswürdige Personen",
-          "description": "Authentifizierte Personen müssen nicht um Zugang bitten."
+          "label": "Offen für Mitglieder der Organisation",
+          "description": "Authentifizierte Mitglieder der Organisation müssen nicht um Zugang bitten."
         },
         "restricted": {
           "label": "Eingeschränkt",
@@ -868,5 +879,17 @@
   },
   "participantTile": {
     "screenShare": "{{name}}’s Bildschirm"
+  },
+  "meetingEnding": {
+    "title": "Besprechungsende",
+    "minute_one": "Die Besprechung endet in {{count}} Min.",
+    "minute_other": "Die Besprechung endet in {{count}} Min.",
+    "lessThanMinute": "Die Besprechung endet in weniger als einer Minute",
+    "ended": "Die Besprechung endet jetzt",
+    "reasons": {
+      "duration_limit": "Die maximale Besprechungsdauer Ihres Tarifs ist erreicht.",
+      "monthly_limit": "Das monatliche Kontingent an Videokonferenzminuten ist aufgebraucht.",
+      "concurrent_limit": "Die maximale Anzahl gleichzeitiger Besprechungen Ihres Tarifs ist erreicht."
+    }
   }
 }
