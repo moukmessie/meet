@@ -188,6 +188,13 @@ class LobbyService:
         room_id = str(room.id)
         user_role = room.get_role(user)
 
+        # Room limits (organization rooms only, fail open): evaluated before anyone
+        # is put in the waiting list, and on every poll, so that a refusal (e.g.
+        # monthly quota used up) reaches anonymous users too and that a token is
+        # never delivered on admission without these limits.
+        # May raise RoomEntryRefused (HTTP 403); {} for rooms without organization.
+        token_kwargs = room.livekit_token_kwargs
+
         if self.can_bypass_lobby(room=room, user=user, role=user_role):
             if not is_new_participant:
                 self.clear_participant_cache(room.id, participant.id)
@@ -201,7 +208,7 @@ class LobbyService:
                 configuration=room.configuration,
                 participant_id=participant.id,
                 role=user_role,
-                **room.livekit_token_kwargs,
+                **token_kwargs,
             )
             return participant, livekit_config
 
@@ -224,7 +231,7 @@ class LobbyService:
                 configuration=room.configuration,
                 participant_id=participant.id,
                 role=user_role,
-                **room.livekit_token_kwargs,
+                **token_kwargs,
             )
 
         return participant, livekit_config
