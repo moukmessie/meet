@@ -25,6 +25,12 @@ Ces informations vivent dans des dépôts privés.
 | 6 | Frontend : bannière de fin de réunion, refus traduits, neutralisation des marques | `docs/fork-frontend-patch.md` |
 | 7 | Salles de réunions planifiées, créées à la première entrée (échec fermé) | `docs/features/scheduled-rooms.md` |
 
+Migrations du fork : elles gardent leurs noms (`0030_user_organization_id`, `0031_room_organization_id`,
+`0032_backfill_room_organization_id`) pour ne pas être rejouées sur une base déjà migrée. Elles forment une
+branche parallèle de celle de l'amont ; une migration de fusion (`0033_merge_fork_and_upstream`) réunit les
+deux feuilles. À chaque montée de version amont : `makemigrations --check` doit ne rien détecter et
+`showmigrations core` ne doit montrer qu'une feuille ; sinon ajouter ou mettre à jour la migration de fusion.
+
 ## CI du fork
 
 `.github/workflows/fork-patched-ci.yml` : lint et tests backend sur les PR et les pushs
