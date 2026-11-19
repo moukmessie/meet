@@ -24,6 +24,11 @@ const KNOWN_CODES = [
   'check_unavailable',
   'room_creation_refused',
   'refused',
+  'scheduled_meeting_not_started',
+  'scheduled_meeting_not_opened',
+  'scheduled_meeting_canceled',
+  'scheduled_meeting_ended',
+  'scheduling_not_available',
 ] as const
 
 const REFUSAL_TIME_ZONE = 'Europe/Paris'

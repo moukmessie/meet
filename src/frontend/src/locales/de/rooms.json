@@ -253,7 +253,12 @@
       "tenant_suspended": "Das Konto Ihrer Organisation ist gesperrt.",
       "tenant_closed": "Das Konto Ihrer Organisation ist geschlossen.",
       "no_active_subscription": "Ihre Organisation hat kein aktives Abonnement.",
-      "entry_refused": "Sie dürfen dieser Besprechung nicht beitreten."
+      "entry_refused": "Sie dürfen dieser Besprechung nicht beitreten.",
+      "scheduled_meeting_not_started": "Diese Besprechung hat noch nicht begonnen. Sie können ihr einige Minuten vor dem geplanten Beginn beitreten.",
+      "scheduled_meeting_not_opened": "Der Organisator hat diese Besprechung noch nicht geöffnet. Bitte versuchen Sie es gleich noch einmal.",
+      "scheduled_meeting_canceled": "Diese Besprechung wurde abgesagt.",
+      "scheduled_meeting_ended": "Diese Besprechung ist beendet.",
+      "scheduling_not_available": "Die Terminplanung von Besprechungen ist im Tarif dieser Organisation nicht mehr enthalten."
     }
   },
   "isIdleDisconnectModal": {

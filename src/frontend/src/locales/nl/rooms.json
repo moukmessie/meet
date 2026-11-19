@@ -253,7 +253,12 @@
       "tenant_suspended": "Het account van uw organisatie is geblokkeerd.",
       "tenant_closed": "Het account van uw organisatie is gesloten.",
       "no_active_subscription": "Uw organisatie heeft geen actief abonnement.",
-      "entry_refused": "U mag niet deelnemen aan deze vergadering."
+      "entry_refused": "U mag niet deelnemen aan deze vergadering.",
+      "scheduled_meeting_not_started": "Deze vergadering is nog niet begonnen. U kunt enkele minuten voor het geplande tijdstip deelnemen.",
+      "scheduled_meeting_not_opened": "De organisator heeft deze vergadering nog niet geopend. Probeer het zo meteen opnieuw.",
+      "scheduled_meeting_canceled": "Deze vergadering is geannuleerd.",
+      "scheduled_meeting_ended": "Deze vergadering is afgelopen.",
+      "scheduling_not_available": "Het plannen van vergaderingen is niet meer inbegrepen in het abonnement van deze organisatie."
     }
   },
   "isIdleDisconnectModal": {
