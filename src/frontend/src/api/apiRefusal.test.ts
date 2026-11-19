@@ -103,7 +103,46 @@ const BACKEND_CODES = [
   'room_creation_refused',
   'entry_refused',
   'refused',
+  'scheduled_meeting_not_started',
+  'scheduled_meeting_not_opened',
+  'scheduled_meeting_canceled',
+  'scheduled_meeting_ended',
+  'scheduling_not_available',
 ]
+
+describe('scheduled meeting refusals', () => {
+  it('translates a meeting that has not started or is canceled', () => {
+    for (const code of [
+      'scheduled_meeting_not_started',
+      'scheduled_meeting_canceled',
+    ]) {
+      expect(
+        getRefusalMessage({ code, detail: 'Détail serveur' }, t, 'fr')
+      ).toBe(`error.refusal.${code}`)
+    }
+  })
+
+  it('extracts the code of the 403 sent by the backend', () => {
+    const error = new ApiError(403, {
+      detail: 'This meeting has been canceled.',
+      code: 'scheduled_meeting_canceled',
+    })
+    expect(getApiRefusal(error)?.code).toBe('scheduled_meeting_canceled')
+  })
+
+  it('has distinct, non-empty messages in the five languages', () => {
+    for (const locale of [en, fr, de, es, nl]) {
+      const messages = locale.error.refusal as Record<string, string>
+      const texts = [
+        messages.scheduled_meeting_not_started,
+        messages.scheduled_meeting_canceled,
+        messages.scheduled_meeting_ended,
+        messages.scheduled_meeting_not_opened,
+      ]
+      expect(new Set(texts).size).toBe(4)
+    }
+  })
+})
 
 describe('refusal translations', () => {
   const locales = { en, fr, de, es, nl }

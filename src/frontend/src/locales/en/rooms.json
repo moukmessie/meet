@@ -253,7 +253,12 @@
       "tenant_suspended": "Your organization's account is suspended.",
       "tenant_closed": "Your organization's account is closed.",
       "no_active_subscription": "Your organization has no active subscription.",
-      "entry_refused": "You are not allowed to join this meeting."
+      "entry_refused": "You are not allowed to join this meeting.",
+      "scheduled_meeting_not_started": "This meeting has not started yet. You can join it a few minutes before the scheduled time.",
+      "scheduled_meeting_not_opened": "The organizer has not opened this meeting yet. Please try again in a moment.",
+      "scheduled_meeting_canceled": "This meeting has been canceled.",
+      "scheduled_meeting_ended": "This meeting is over.",
+      "scheduling_not_available": "Meeting scheduling is no longer included in this organization's plan."
     }
   },
   "isIdleDisconnectModal": {
