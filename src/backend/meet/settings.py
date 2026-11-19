@@ -846,6 +846,23 @@ class Base(Configuration):
     ROOM_LIMITS_TIMEOUT = values.FloatValue(
         2.0, environ_name="ROOM_LIMITS_TIMEOUT", environ_prefix=None
     )
+    # Rooms of planned meetings (multi-organization deployments): on the first entry on
+    # an unknown slug, ask the platform whether a planned meeting reserved it and create
+    # the room. Empty URL: disabled. The token is ROOM_CREATION_CHECK_TOKEN.
+    SCHEDULED_ROOMS_URL = values.Value(
+        None, environ_name="SCHEDULED_ROOMS_URL", environ_prefix=None
+    )
+    # Optional: the platform is told which room holds the meeting once created.
+    SCHEDULED_ROOMS_ROOM_URL = values.Value(
+        None, environ_name="SCHEDULED_ROOMS_ROOM_URL", environ_prefix=None
+    )
+    SCHEDULED_ROOMS_TIMEOUT = values.FloatValue(
+        2.0, environ_name="SCHEDULED_ROOMS_TIMEOUT", environ_prefix=None
+    )
+    # How long before the start the room can be opened. Nothing after the end.
+    SCHEDULED_ROOMS_EARLY_ENTRY_MINUTES = values.PositiveIntegerValue(
+        15, environ_name="SCHEDULED_ROOMS_EARLY_ENTRY_MINUTES", environ_prefix=None
+    )
     # Trusted rooms open only to users of the room organization (multi-organization
     # deployments). Off: any authenticated user benefits from trusted access.
     TRUSTED_ACCESS_SAME_ORGANIZATION = values.BooleanValue(

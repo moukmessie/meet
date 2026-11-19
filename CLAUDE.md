@@ -14,6 +14,17 @@ Ces informations vivent dans des dépôts privés.
 - `main` : miroir de `upstream/main`, **jamais modifié**. Remote `upstream` : `https://github.com/suitenumerique/meet.git`.
 - `patched/vX.Y.Z` : part du tag amont `vX.Y.Z`. Elle contient les patchs (un commit par patch) et les fichiers propres au fork (`CLAUDE.md`, `.claude/`, CI de l'image patchée).
 
+## Patchs
+
+| N° | Patch | Documentation |
+|----|-------|---------------|
+| 1 | Organisation de l'utilisateur (claim OIDC) et de la salle | `docs/features/room-limits.md` |
+| 2 | Salles `trusted` limitées à l'organisation de la salle | `docs/fork-frontend-patch.md` |
+| 3 | Contrôle de création de salle par une plateforme externe (échec fermé) | `docs/features/room-limits.md` |
+| 5 | Limites de salle d'un service externe appliquées aux jetons (échec ouvert) | `docs/features/room-limits.md` |
+| 6 | Frontend : bannière de fin de réunion, refus traduits, neutralisation des marques | `docs/fork-frontend-patch.md` |
+| 7 | Salles de réunions planifiées, créées à la première entrée (échec fermé) | `docs/features/scheduled-rooms.md` |
+
 ## CI du fork
 
 `.github/workflows/fork-patched-ci.yml` : lint et tests backend sur les PR et les pushs

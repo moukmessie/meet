@@ -253,7 +253,12 @@
       "tenant_suspended": "La cuenta de su organización está suspendida.",
       "tenant_closed": "La cuenta de su organización está cerrada.",
       "no_active_subscription": "Su organización no tiene una suscripción activa.",
-      "entry_refused": "No tiene permiso para unirse a esta reunión."
+      "entry_refused": "No tiene permiso para unirse a esta reunión.",
+      "scheduled_meeting_not_started": "Esta reunión aún no ha comenzado. Podrá unirse unos minutos antes de la hora prevista.",
+      "scheduled_meeting_not_opened": "El organizador aún no ha abierto esta reunión. Inténtelo de nuevo en un momento.",
+      "scheduled_meeting_canceled": "Esta reunión ha sido cancelada.",
+      "scheduled_meeting_ended": "Esta reunión ha terminado.",
+      "scheduling_not_available": "La planificación de reuniones ya no está incluida en el plan de esta organización."
     }
   },
   "isIdleDisconnectModal": {
