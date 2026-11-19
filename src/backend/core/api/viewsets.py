@@ -85,6 +85,7 @@ from core.services.room_roles import (
     RoomRoleError,
     RoomRoleService,
 )
+from core.services.scheduled_rooms import get_or_create_scheduled_room
 from core.services.subtitle import SubtitleException, SubtitleService
 from core.services.transit_code import TransitCodeService
 from core.tasks.connection_test import delete_connection_test_room
@@ -318,6 +319,12 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
         try:
             instance = self.get_object()
         except Http404:
+            # Unknown room: it may be the room of a planned meeting, created now.
+            instance = get_or_create_scheduled_room(
+                slugify(self.kwargs["pk"]), request.user
+            )
+            if instance is not None:
+                return drf_response.Response(self.get_serializer(instance).data)
             if not settings.ALLOW_UNREGISTERED_ROOMS:
                 raise
             slug = slugify(self.kwargs["pk"])
