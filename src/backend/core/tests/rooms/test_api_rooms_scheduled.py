@@ -459,3 +459,172 @@ def test_unregistered_rooms_setting_is_still_honored(settings):
     assert response.status_code == 200
     assert response.json()["id"] is None
     assert not Room.objects.exists()
+
+
+# Settings of the meeting (access level, configuration, cohosts)
+
+
+@responses.activate
+def test_room_takes_the_settings_of_the_meeting():
+    """Access level and configuration come from the platform."""
+    mock_platform(
+        lookup=meeting(
+            access_level="trusted",
+            configuration={
+                "can_publish_sources": ["microphone", "camera"],
+                "everyone_can_mute": True,
+            },
+        )
+    )
+
+    response = enter(organizer())
+
+    assert response.status_code == 200
+    room = Room.objects.get(slug=SLUG)
+    assert room.access_level == "trusted"
+    assert room.configuration == {
+        "can_publish_sources": ["microphone", "camera"],
+        "everyone_can_mute": True,
+    }
+    assert response.json()["access_level"] == "trusted"
+
+
+@responses.activate
+@pytest.mark.parametrize(
+    "access_level", ["public", "open", "", None, 3, ["trusted"], "TRUSTED"]
+)
+def test_invalid_unknown_or_public_access_level_falls_back_to_restricted(access_level):
+    """Negative test: `public` is never granted, even if the platform sends it."""
+    mock_platform(lookup=meeting(access_level=access_level))
+
+    assert enter(organizer()).status_code == 200
+
+    assert Room.objects.get(slug=SLUG).access_level == "restricted"
+
+
+@responses.activate
+def test_missing_settings_fall_back_to_restricted_and_empty_configuration():
+    """An older platform that sends no settings: the most restrictive default."""
+    body = meeting()
+    mock_platform(lookup=body)
+
+    assert enter(organizer()).status_code == 200
+
+    room = Room.objects.get(slug=SLUG)
+    assert room.access_level == "restricted"
+    assert room.configuration == {}
+
+
+@responses.activate
+@pytest.mark.parametrize(
+    "configuration",
+    [
+        {"unknown_key": True},
+        {"can_publish_sources": ["hologram"]},
+        {"can_publish_sources": "camera"},
+        {"everyone_can_mute": "maybe"},
+        ["everyone_can_mute"],
+        "everyone_can_mute",
+        42,
+    ],
+)
+def test_invalid_configuration_is_ignored_and_the_room_is_still_created(configuration):
+    """The room opens with the default configuration; nothing invalid is stored."""
+    mock_platform(lookup=meeting(access_level="trusted", configuration=configuration))
+
+    assert enter(organizer()).status_code == 200
+
+    room = Room.objects.get(slug=SLUG)
+    assert room.configuration == {}
+    assert room.access_level == "trusted"
+
+
+@responses.activate
+def test_user_default_room_preferences_are_ignored():
+    """The meeting decides, not the `default_room_*` of whoever opens the room."""
+    user = UserFactory(
+        organization_id=ORG,
+        default_room_access_level="public",
+        default_room_configuration={"everyone_can_mute": True},
+    )
+    mock_platform(lookup=meeting(access_level="restricted", configuration={}))
+
+    assert enter(user).status_code == 200
+
+    room = Room.objects.get(slug=SLUG)
+    assert room.access_level == "restricted"
+    assert room.configuration == {}
+
+
+@responses.activate
+def test_cohosts_become_administrators_not_owners():
+    """Designated cohosts of the organization moderate the room."""
+    host = organizer()
+    cohost = organizer()
+    mock_platform(lookup=meeting(organizer_sub=host.sub, cohost_subs=[cohost.sub]))
+
+    assert enter(host).status_code == 200
+
+    room = Room.objects.get(slug=SLUG)
+    assert (
+        ResourceAccess.objects.get(resource=room, user=cohost).role == RoleChoices.ADMIN
+    )
+    assert (
+        ResourceAccess.objects.get(resource=room, user=host).role == RoleChoices.OWNER
+    )
+
+
+@responses.activate
+def test_cohost_of_another_organization_or_unknown_gets_nothing():
+    """Negative test: the signed organization of the cohost must match."""
+    stranger = UserFactory(organization_id=uuid.uuid4())
+    no_org = UserFactory()
+    mock_platform(
+        lookup=meeting(cohost_subs=[stranger.sub, no_org.sub, "never-seen-before"])
+    )
+    user = organizer()
+
+    assert enter(user).status_code == 200
+
+    room = Room.objects.get(slug=SLUG)
+    assert list(
+        ResourceAccess.objects.filter(resource=room).values_list("user", flat=True)
+    ) == [user.pk]
+
+
+@responses.activate
+def test_cohost_who_opens_the_room_stays_single_owner():
+    """A cohost opening the room is its owner, without a second access."""
+    cohost = organizer()
+    mock_platform(lookup=meeting(cohost_subs=[cohost.sub]))
+
+    assert enter(cohost).status_code == 200
+
+    accesses = ResourceAccess.objects.filter(resource__room__slug=SLUG)
+    assert [(a.user, a.role) for a in accesses] == [(cohost, RoleChoices.OWNER)]
+
+
+@responses.activate
+@pytest.mark.parametrize(
+    "cohost_subs",
+    ["sub", {"a": "b"}, [1, 2], [""], ["x" * 256], [f"u{i}" for i in range(11)]],
+)
+def test_invalid_cohosts_are_ignored(cohost_subs):
+    """A malformed list grants nothing and does not block the opening."""
+    mock_platform(lookup=meeting(cohost_subs=cohost_subs))
+    user = organizer()
+
+    assert enter(user).status_code == 200
+
+    assert ResourceAccess.objects.filter(resource__room__slug=SLUG).count() == 1
+
+
+@responses.activate
+def test_display_name_is_not_applied_to_the_room():
+    """The slug of a room derives from its name: it must stay the reserved identifier."""
+    mock_platform(lookup=meeting(name="Atelier du jeudi"))
+
+    assert enter(organizer()).status_code == 200
+
+    room = Room.objects.get(slug=SLUG)
+    assert room.name == SLUG

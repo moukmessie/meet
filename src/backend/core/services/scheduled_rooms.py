@@ -26,8 +26,10 @@ from django.db import IntegrityError, transaction
 from django.utils import timezone
 
 import requests
+from pydantic import ValidationError as PydanticValidationError
 
 from core import analytics, models
+from core.api.serializers import RoomConfiguration
 from core.services.room_creation_check import (
     REASON_PATTERN,
     RoomCreationRefused,
@@ -68,6 +70,47 @@ def _token():
     return settings.ROOM_CREATION_CHECK_TOKEN
 
 
+# Access levels a planned meeting can ask for. ``public`` is never granted: the platform does
+# not offer it, and an unknown or invalid value falls back to the most restrictive level.
+ALLOWED_ACCESS_LEVELS = (
+    models.RoomAccessLevel.TRUSTED,
+    models.RoomAccessLevel.RESTRICTED,
+)
+FALLBACK_ACCESS_LEVEL = models.RoomAccessLevel.RESTRICTED
+MAX_COHOSTS = 10
+
+
+def _access_level(value) -> str:
+    if value in ALLOWED_ACCESS_LEVELS:
+        return str(value)
+    logger.warning("Scheduled meeting access level not usable: falling back")
+    return FALLBACK_ACCESS_LEVEL
+
+
+def _configuration(value) -> dict:
+    """Validate the room configuration with the schema of the API; {} when invalid."""
+    if value is None or value == {}:
+        return {}
+    try:
+        if not isinstance(value, dict):
+            raise ValueError("not an object")
+        RoomConfiguration.model_validate(value)
+    except (PydanticValidationError, ValueError):
+        logger.warning("Scheduled meeting configuration not usable: ignored")
+        return {}
+    return {key: item for key, item in value.items() if item is not None}
+
+
+def _cohost_subs(value) -> list:
+    if not isinstance(value, list):
+        return []
+    subs = [item for item in value if isinstance(item, str) and 0 < len(item) <= 255]
+    if len(subs) != len(value) or len(subs) > MAX_COHOSTS:
+        logger.warning("Scheduled meeting cohosts not usable: ignored")
+        return []
+    return list(dict.fromkeys(subs))
+
+
 def _lookup(slug, user) -> Optional[dict]:
     """Ask the platform about a slug.
 
@@ -93,6 +136,9 @@ def _lookup(slug, user) -> Optional[dict]:
     if result.get("status") not in ("scheduled", "canceled"):
         raise ValueError("unknown status")
     meeting = {
+        "access_level": _access_level(result.get("access_level")),
+        "configuration": _configuration(result.get("configuration")),
+        "cohost_subs": _cohost_subs(result.get("cohost_subs")),
         "organization_id": uuid.UUID(str(result["organization_id"])),
         "status": result["status"],
         "starts_at": _parse_datetime(result["starts_at"]),
@@ -136,14 +182,18 @@ def _check_may_open(meeting, user):
 
 
 def _create_room(slug, user, meeting) -> models.Room:
-    save_kwargs = {}
-    if user.default_room_access_level not in (None, ""):
-        save_kwargs["access_level"] = user.default_room_access_level
-    if user.default_room_configuration not in (None, {}):
-        save_kwargs["configuration"] = user.default_room_configuration
+    """Create the room with the settings of the meeting.
+
+    The default room preferences of the user are ignored: the meeting decides. The
+    display name chosen on the platform is not applied, as the slug of a room is derived
+    from its name and must stay the reserved identifier.
+    """
     with transaction.atomic():
         room = models.Room.objects.create(
-            name=slug, organization_id=meeting["organization_id"], **save_kwargs
+            name=slug,
+            organization_id=meeting["organization_id"],
+            access_level=meeting["access_level"],
+            configuration=meeting["configuration"],
         )
         models.ResourceAccess.objects.create(
             resource=room, user=user, role=models.RoleChoices.OWNER
@@ -157,7 +207,28 @@ def _create_room(slug, user, meeting) -> models.Room:
             models.ResourceAccess.objects.create(
                 resource=room, user=organizer, role=models.RoleChoices.OWNER
             )
+        _grant_cohosts(room, meeting, {user.pk, organizer.pk if organizer else None})
     return room
+
+
+def _grant_cohosts(room, meeting, already_owners) -> None:
+    """Give the designated cohosts the administrator role of the room.
+
+    Only users Meet already knows, and whose signed organization is the one of the
+    meeting: the designation of the platform is never enough on its own. They moderate
+    the room; they do not own it.
+    """
+    if not meeting["cohost_subs"]:
+        return
+    cohosts = models.User.objects.filter(
+        sub__in=meeting["cohost_subs"], organization_id=meeting["organization_id"]
+    )
+    for cohost in cohosts:
+        if cohost.pk in already_owners:
+            continue
+        models.ResourceAccess.objects.create(
+            resource=room, user=cohost, role=models.RoleChoices.ADMIN
+        )
 
 
 def _announce_room(slug, room) -> None:

@@ -53,7 +53,11 @@ ou
   "ends_at": "2026-12-01T10:00:00+00:00",
   "room_id": null,
   "user_may_open": true,
-  "refused_reason": null
+  "refused_reason": null,
+  "name": "Atelier",
+  "access_level": "trusted",
+  "configuration": { "can_publish_sources": ["microphone", "camera"], "everyone_can_mute": true },
+  "cohost_subs": ["<sub>"]
 }
 ```
 
@@ -61,6 +65,19 @@ Ni titre, ni description, ni adresse e-mail : seul le nécessaire à la décisio
 `status` : `scheduled` ou `canceled`. `user_may_open` : décision de la plateforme (qui peut
 ouvrir la salle). `refused_reason` : motif de refus décidé par la plateforme (offre, organisation
 inactive).
+
+### Réglages de la salle
+
+Les champs `access_level`, `configuration`, `cohost_subs` et `name` sont facultatifs et validés
+par Meet. Les préférences par défaut de l'utilisateur (`default_room_access_level`,
+`default_room_configuration`) sont **ignorées** : c'est la réunion qui décide.
+
+| Champ | Règle de Meet |
+| ----- | ------------- |
+| `access_level` | `trusted` ou `restricted`. **`public` n'est jamais accordé** : toute autre valeur (`public`, inconnue, absente, mal typée) donne `restricted`, avec un avertissement journalisé. |
+| `configuration` | Validée avec le schéma de l'API (`can_publish_sources`, `everyone_can_mute` ; clés inconnues refusées). Invalide : ignorée (`{}`) et journalisée, la salle est tout de même créée. |
+| `cohost_subs` | 10 `sub` au plus, chaînes de 255 caractères au plus ; sinon la liste entière est ignorée. Un co-animateur reçoit le rôle **administrateur** de la salle (il modère, il n'en est pas propriétaire) s'il est déjà connu de Meet **et** si l'organisation de sa claim est celle de la réunion. Un `sub` inconnu de Meet (jamais connecté à la salle) n'obtient rien. |
+| `name` | Lu mais **non appliqué** : l'identifiant d'une salle est dérivé de son nom (`slug`), il doit rester l'identifiant réservé. Le nom d'affichage n'apparaît pas dans la salle. |
 
 ### Annonce de la salle (`SCHEDULED_ROOMS_ROOM_URL`)
 
@@ -83,8 +100,8 @@ Dans cet ordre, pour un identifiant connu de la plateforme :
 | Plateforme injoignable, réponse illisible ou en erreur (utilisateur connecté) | `check_unavailable`                 |
 
 Sinon la salle est créée : nom et identifiant = celui réservé, `organization_id` = celui de la
-réunion (la salle est donc de l'organisation, patch 1), niveau d'accès et configuration par
-défaut de l'utilisateur, l'utilisateur en propriétaire (l'organisateur aussi, s'il est connu de Meet
+réunion (la salle est donc de l'organisation, patch 1), niveau d'accès et configuration de
+la réunion (voir « Réglages de la salle »), l'utilisateur en propriétaire (l'organisateur aussi, s'il est connu de Meet
 par son `sub`). La salle existe ensuite comme toute salle : les invités entrent avec le lien selon son
 niveau d'accès (salle d'attente comprise) et les limites de salle s'appliquent à chaque jeton
 (patch 5).
@@ -111,6 +128,13 @@ Les entrées suivantes ne passent plus par la plateforme.
 
 ## Limites connues
 
+- **Durcissement en direct** : le niveau d'accès choisi par la réunion est le niveau initial. En
+  direct, le comportement amont n'est pas modifié : un propriétaire ou administrateur de la salle
+  peut changer le niveau d'accès dans les deux sens, y compris vers `public`. « Durcir seulement »
+  et « jamais `public` » après l'ouverture demandent un patch distinct sur la mise à jour de la
+  salle, non réalisé ici.
+- Un co-animateur qui ne s'est jamais connecté à Meet n'a pas le rôle (son compte Meet n'existe
+  pas encore) : l'organisateur peut le promouvoir dans la salle.
 - L'ouverture par la récupération de la salle n'est pas limitée par le débit de création de salle
   (`ROOM_CREATION_THROTTLE_RATES`) : le nombre de salles par utilisateur est borné par les réunions
   planifiées de la plateforme.
@@ -126,5 +150,6 @@ restent des salles ordinaires.
 ## Tests
 
 `src/backend/core/tests/rooms/test_api_rooms_scheduled.py` (accès, idempotence, concurrence, fenêtre
-horaire, annulation, quota, plateforme injoignable, identifiants hors format) et
+horaire, annulation, quota, plateforme injoignable, identifiants hors format, réglages de la
+réunion, repli `restricted`, co-animateurs) et
 `src/frontend/src/api/apiRefusal.test.ts` (messages dans les cinq langues).
