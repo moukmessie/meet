@@ -56,6 +56,11 @@ Le message traduit du code est **toujours** préféré à `detail` (qui n'est pa
 | `check_unavailable` | Création temporairement indisponible |
 | `entry_refused` | Entrée refusée |
 | `room_creation_refused`, `refused` | Création non autorisée |
+| `scheduled_meeting_not_started` | Réunion planifiée pas encore commencée |
+| `scheduled_meeting_not_opened` | L'organisateur n'a pas encore ouvert la réunion |
+| `scheduled_meeting_canceled` | Réunion annulée |
+| `scheduled_meeting_ended` | Réunion terminée |
+| `scheduling_not_available` | Planification non incluse dans l'offre |
 
 Code : `src/frontend/src/api/apiRefusal.ts`, clés `error.refusal.*` de `rooms.json`
 (cinq langues ; un test vérifie que chaque code a une traduction dans chacune).

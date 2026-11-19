@@ -1,0 +1,130 @@
+# Salles de réunions planifiées
+
+Pour les déploiements multi-organisations, une plateforme externe peut planifier des
+réunions et **réserver un identifiant de salle** (`abc-defg-hij`) pour chacune. Meet ne
+connaît pas encore cet identifiant : à la première entrée, il interroge la plateforme et crée la
+salle si la réunion est valable. Rien n'est créé à la planification.
+
+## Réglages
+
+| Variable                              | Description                                                                                         | Défaut |
+| ------------------------------------- | --------------------------------------------------------------------------------------------------- | ------ |
+| `SCHEDULED_ROOMS_URL`                 | URL de recherche d'une réunion par identifiant. Vide : fonction désactivée, comportement amont.     |        |
+| `SCHEDULED_ROOMS_ROOM_URL`            | URL où Meet annonce la salle créée. Facultative : vide, rien n'est annoncé.                         |        |
+| `SCHEDULED_ROOMS_TIMEOUT`             | Délai d'attente du service, en secondes.                                                            | `2.0`  |
+| `SCHEDULED_ROOMS_EARLY_ENTRY_MINUTES` | Minutes avant le début pendant lesquelles la salle peut être ouverte. Rien n'est toléré après la fin. | `15`   |
+
+Le jeton est celui du contrôle de création de salle (`ROOM_CREATION_CHECK_TOKEN`, en-tête
+`Authorization: Bearer`). Le contrôle de création (`ROOM_CREATION_CHECK_URL`) s'applique à
+l'ouverture de la salle : quotas et limites restent ceux de la plateforme.
+
+## Où c'est appliqué
+
+`GET /rooms/<identifiant>/` (récupération de la salle, première requête de toute entrée). Pour
+une salle inconnue de Meet **dont l'identifiant a le format `abc-defg-hij`** (les autres
+identifiants et les UUID ne déclenchent aucun appel), Meet appelle la plateforme. Une salle déjà
+présente dans Meet ne déclenche aucun appel.
+
+## Contrat du service
+
+### Recherche (`SCHEDULED_ROOMS_URL`)
+
+`POST` JSON :
+
+```json
+{ "slug": "abc-defg-hij", "user_sub": "<sub de l'utilisateur>" }
+```
+
+(`user_sub` vide pour un anonyme.) Réponse `200` :
+
+```json
+{ "exists": false }
+```
+
+ou
+
+```json
+{
+  "exists": true,
+  "organization_id": "<uuid>",
+  "organizer_sub": "<sub>",
+  "status": "scheduled",
+  "starts_at": "2026-12-01T09:00:00+00:00",
+  "ends_at": "2026-12-01T10:00:00+00:00",
+  "room_id": null,
+  "user_may_open": true,
+  "refused_reason": null
+}
+```
+
+Ni titre, ni description, ni adresse e-mail : seul le nécessaire à la décision est échangé.
+`status` : `scheduled` ou `canceled`. `user_may_open` : décision de la plateforme (qui peut
+ouvrir la salle). `refused_reason` : motif de refus décidé par la plateforme (offre, organisation
+inactive).
+
+### Annonce de la salle (`SCHEDULED_ROOMS_ROOM_URL`)
+
+Après la création, `POST {"slug": "...", "room_id": "<uuid de la salle>"}`. L'identifiant de salle
+est le nom de la salle LiveKit : la plateforme s'en sert pour rattacher les sessions LiveKit
+(webhooks) à la réunion. Idempotent ; un échec est journalisé et n'empêche pas l'entrée.
+
+## Décision de Meet
+
+Dans cet ordre, pour un identifiant connu de la plateforme :
+
+| Situation                                                                 | Réponse `403`, `code`                   |
+| ------------------------------------------------------------------------- | --------------------------------------- |
+| Réunion annulée (quel que soit l'utilisateur)                             | `scheduled_meeting_canceled`            |
+| Fin de la réunion passée                                                  | `scheduled_meeting_ended`               |
+| Motif de refus de la plateforme (`refused_reason`)                        | ce motif (`scheduling_not_available`…)  |
+| Plus de `SCHEDULED_ROOMS_EARLY_ENTRY_MINUTES` avant le début              | `scheduled_meeting_not_started`         |
+| Anonyme, `user_may_open` faux, ou organisation signée différente de celle de la réunion | `scheduled_meeting_not_opened` |
+| Refus du contrôle de création (quota, limites, rôle)                      | le motif du contrôle (`monthly_minutes_exhausted`…) |
+| Plateforme injoignable, réponse illisible ou en erreur (utilisateur connecté) | `check_unavailable`                 |
+
+Sinon la salle est créée : nom et identifiant = celui réservé, `organization_id` = celui de la
+réunion (la salle est donc de l'organisation, patch 1), niveau d'accès et configuration par
+défaut de l'utilisateur, l'utilisateur en propriétaire (l'organisateur aussi, s'il est connu de Meet
+par son `sub`). La salle existe ensuite comme toute salle : les invités entrent avec le lien selon son
+niveau d'accès (salle d'attente comprise) et les limites de salle s'appliquent à chaque jeton
+(patch 5).
+
+Un invité qui arrive avant l'ouverture reçoit `scheduled_meeting_not_opened` (ou
+`scheduled_meeting_not_started` trop tôt) : il réessaie une fois la salle ouverte.
+
+## Idempotence et concurrence
+
+Deux premières entrées simultanées créent une seule salle : l'unicité de l'identifiant rejette la
+seconde création, qui relit alors la salle de la première (sans second appel d'annonce).
+Les entrées suivantes ne passent plus par la plateforme.
+
+## Échecs
+
+- La **création échoue fermé** : plateforme injoignable, délai dépassé, réponse illisible, contrôle
+  de création indisponible ou refus : aucune salle n'est créée. Pour un utilisateur connecté, la
+  réponse est `403 check_unavailable` ; pour un anonyme (qui ne pourrait rien créer), le
+  comportement amont (`404`) est conservé.
+- L'**entrée** dans une salle existante reste celle de Meet : elle échoue ouvert comme les limites
+  de salle (voir `room-limits.md`).
+- Un identifiant inconnu de la plateforme garde le comportement amont : `404`, ou salle non
+  enregistrée si `ALLOW_UNREGISTERED_ROOMS` est actif.
+
+## Limites connues
+
+- L'ouverture par la récupération de la salle n'est pas limitée par le débit de création de salle
+  (`ROOM_CREATION_THROTTLE_RATES`) : le nombre de salles par utilisateur est borné par les réunions
+  planifiées de la plateforme.
+- Si l'annonce de la salle échoue, la plateforme ne rattache pas les sessions LiveKit à la réunion.
+- La fenêtre horaire est évaluée avec l'horloge de Meet : les horloges doivent être synchronisées
+  (quelques secondes de dérive sont sans effet avec la tolérance).
+
+## Retour arrière
+
+Vider `SCHEDULED_ROOMS_URL` : plus aucun appel, comportement amont. Les salles déjà créées
+restent des salles ordinaires.
+
+## Tests
+
+`src/backend/core/tests/rooms/test_api_rooms_scheduled.py` (accès, idempotence, concurrence, fenêtre
+horaire, annulation, quota, plateforme injoignable, identifiants hors format) et
+`src/frontend/src/api/apiRefusal.test.ts` (messages dans les cinq langues).
