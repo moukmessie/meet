@@ -11,6 +11,7 @@ on:
       - "patched/**"
     tags:
       - "v*-patched.*"
+  workflow_dispatch:
 
 permissions:
   contents: read
