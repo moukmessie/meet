@@ -45,10 +45,13 @@ export const routes: Record<
     Component: LazyExoticComponent<ComponentType>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     to?: (...args: any[]) => string | URL
+    // Fork patch: screen of Meet hidden (sent to the portal) when `portal_url` is set
+    hiddenWithPortal?: boolean
   }
 > = {
   home: {
     name: 'home',
+    hiddenWithPortal: true,
     path: '/',
     Component: HomeRoute,
   },
@@ -60,6 +63,7 @@ export const routes: Record<
   },
   feedback: {
     name: 'feedback',
+    hiddenWithPortal: true,
     path: '/feedback',
     Component: FeedbackRoute,
   },
@@ -85,16 +89,19 @@ export const routes: Record<
   },
   sdkCreatePopup: {
     name: 'sdkCreatePopup',
+    hiddenWithPortal: true,
     path: '/sdk/create-popup',
     Component: CreatePopup,
   },
   sdkCreateButton: {
     name: 'sdkCreateButton',
+    hiddenWithPortal: true,
     path: '/sdk/create-button',
     Component: CreateMeetingButton,
   },
   sdkSettingsPopup: {
     name: 'sdkSettingsPopup',
+    hiddenWithPortal: true,
     path: '/sdk/settings-popup',
     Component: SettingsPopup,
   },

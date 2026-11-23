@@ -11,6 +11,7 @@ import { useUser } from '@/features/auth/api/useUser'
 import { LoginButton } from '@/components/LoginButton'
 import { logout } from '@/features/auth/utils/logout'
 import { useMediaQuery } from '@/features/rooms/livekit/hooks/useMediaQuery'
+import { usePortalUrl } from '@/features/portal/usePortal'
 import { RoomsTab } from './tabs/RoomsTab'
 
 export type SettingsDialogProps = Pick<DialogProps, 'isOpen' | 'onOpenChange'>
@@ -56,6 +57,7 @@ const tabPanelStyle = css({
 export const SettingsDialog = (props: SettingsDialogProps) => {
   const { t, i18n } = useTranslation('settings')
   const { user, isLoggedIn } = useUser()
+  const hasPortal = !!usePortalUrl()
   const { languagesList, currentLanguage } = useLanguageLabels()
 
   const dialogEl = useRef<HTMLDivElement>(null)
@@ -108,7 +110,8 @@ export const SettingsDialog = (props: SettingsDialogProps) => {
   )
 
   // Without tabs there is no rail to host the heading, so keep the plain dialog.
-  if (!isLoggedIn) {
+  // Fork patch: with a portal the rooms are managed there, so no Rooms tab
+  if (!isLoggedIn || hasPortal) {
     return (
       <Dialog title={t('dialog.heading')} {...props} role="dialog" type="flex">
         {generalContent}

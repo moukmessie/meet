@@ -26,6 +26,8 @@ export interface ApiConfig {
   documentation_url?: string
   technical_documentation_url?: string
   external_home_url?: string
+  // Fork patch: portal address, empty keeps the upstream behaviour
+  portal_url?: string | null
   silence_livekit_debug_logs?: boolean
   is_silent_login_enabled?: boolean
   custom_css_url?: string
