@@ -101,6 +101,8 @@ const BACKEND_CODES = [
   'no_organization',
   'check_unavailable',
   'room_creation_refused',
+  'room_creation_disabled',
+  'access_level_loosening_refused',
   'entry_refused',
   'refused',
   'scheduled_meeting_not_started',

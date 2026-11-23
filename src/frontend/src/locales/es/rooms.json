@@ -247,6 +247,8 @@
       "no_organization": "Debe pertenecer a una organización para crear una reunión.",
       "check_unavailable": "La creación de reuniones no está disponible temporalmente, inténtelo de nuevo más tarde.",
       "room_creation_refused": "No tiene permiso para crear una reunión.",
+      "room_creation_disabled": "No se pueden crear reuniones desde aquí. Vuelva al portal para crear una.",
+      "access_level_loosening_refused": "El nivel de acceso de una reunión solo puede hacerse más estricto.",
       "refused": "No tiene permiso para crear una reunión.",
       "concurrent_rooms_limit": "Se ha alcanzado el número máximo de reuniones simultáneas de su organización.",
       "unknown_organization": "El servicio no reconoce su organización.",

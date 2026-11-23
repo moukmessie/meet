@@ -8,6 +8,8 @@ import { ApiAccessLevel } from '@/features/rooms/api/ApiRoom'
 import { keys } from '@/api/queryKeys'
 import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'wouter'
+import { useConfig } from '@/api/useConfig'
+import { isAccessLevelAllowed } from '@/features/rooms/utils/accessLevel'
 import { usePublishSourcesManager } from '../hooks/usePublishSourcesManager'
 import { usePermissionsManager } from '../hooks/usePermissionsManager'
 import { useEffect } from 'react'
@@ -25,6 +27,7 @@ export const Admin = () => {
   }
 
   const { mutateAsync: patchRoom } = usePatchRoom()
+  const { data: config } = useConfig()
 
   const isAdminOrOwner = useIsAdminOrOwner()
 
@@ -224,7 +227,13 @@ export const Admin = () => {
               label: t('access.levels.restricted.label'),
               description: t('access.levels.restricted.description'),
             },
-          ]}
+          ].filter((item) =>
+            isAccessLevelAllowed(
+              readOnlyData?.access_level,
+              item.value,
+              config?.room_access_level_harden_only
+            )
+          )}
         />
       </div>
     </Div>

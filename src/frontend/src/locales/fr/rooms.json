@@ -247,6 +247,8 @@
       "no_organization": "Vous devez appartenir à une organisation pour créer une réunion.",
       "check_unavailable": "La création de réunion est temporairement indisponible, veuillez réessayer plus tard.",
       "room_creation_refused": "Vous n'êtes pas autorisé à créer une réunion.",
+      "room_creation_disabled": "Les réunions ne peuvent pas être créées depuis cette page. Retournez au portail pour en créer une.",
+      "access_level_loosening_refused": "Le niveau d'accès d'une réunion ne peut qu'être renforcé.",
       "refused": "Vous n'êtes pas autorisé à créer une réunion.",
       "concurrent_rooms_limit": "Le nombre maximal de réunions simultanées de votre organisation est atteint.",
       "unknown_organization": "Votre organisation n'est pas reconnue par le service.",

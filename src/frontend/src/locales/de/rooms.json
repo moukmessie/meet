@@ -247,6 +247,8 @@
       "no_organization": "Sie müssen einer Organisation angehören, um eine Besprechung zu erstellen.",
       "check_unavailable": "Das Erstellen von Besprechungen ist vorübergehend nicht verfügbar, bitte versuchen Sie es später erneut.",
       "room_creation_refused": "Sie dürfen keine Besprechung erstellen.",
+      "room_creation_disabled": "Besprechungen können hier nicht erstellt werden. Bitte kehren Sie zum Portal zurück, um eine zu erstellen.",
+      "access_level_loosening_refused": "Die Zugriffsebene einer Besprechung kann nur verschärft werden.",
       "refused": "Sie dürfen keine Besprechung erstellen.",
       "concurrent_rooms_limit": "Die maximale Anzahl gleichzeitiger Besprechungen Ihrer Organisation ist erreicht.",
       "unknown_organization": "Ihre Organisation wird vom Dienst nicht erkannt.",

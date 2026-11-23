@@ -31,6 +31,8 @@ export interface ApiConfig {
   custom_css_url?: string
   use_french_gov_footer?: boolean
   allow_unregistered_rooms?: boolean
+  room_creation_api_enabled?: boolean
+  room_access_level_harden_only?: boolean
   idle_disconnect_warning_delay?: number
   recording?: {
     is_enabled?: boolean
