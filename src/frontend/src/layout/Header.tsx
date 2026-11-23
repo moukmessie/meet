@@ -15,7 +15,8 @@ import { VisualOnlyTooltip } from '@/primitives/VisualOnlyTooltip'
 
 import { useLoginHint } from '@/hooks/useLoginHint'
 import { logout } from '@/features/auth/utils/logout'
-import { useMemo } from 'react'
+import { useMemo, type MouseEvent, type ReactNode } from 'react'
+import { usePortalHomeUrl } from '@/features/portal/usePortal'
 
 const Logo = () => (
   <img
@@ -87,6 +88,27 @@ const isLoginButtonHidden = () => {
   return value === 'true'
 }
 
+const HeaderLogoLink = ({
+  portalHomeUrl,
+  className,
+  onClick,
+  children,
+}: {
+  portalHomeUrl: string | null
+  className: string
+  onClick: (event: MouseEvent<HTMLAnchorElement>) => void
+  children: ReactNode
+}) =>
+  portalHomeUrl ? (
+    <a href={portalHomeUrl} className={className} onClick={onClick}>
+      {children}
+    </a>
+  ) : (
+    <Link to="/" className={className} onClick={onClick}>
+      {children}
+    </Link>
+  )
+
 export const Header = () => {
   const { t } = useTranslation()
   const isHome = useMatchesRoute('home')
@@ -95,6 +117,9 @@ export const Header = () => {
   const isTermsOfService = useMatchesRoute('termsOfService')
   const isRoom = useMatchesRoute('room')
   const { user, isLoggedIn } = useUser()
+  // Fork patch: with a portal, the logo goes back to it and there is no
+  // sign-in button (members come from the portal, guests stay anonymous)
+  const portalHomeUrl = usePortalHomeUrl()
 
   const loginButtonDisabledByUrl = useMemo(() => isLoginButtonHidden(), [])
 
@@ -118,7 +143,8 @@ export const Header = () => {
         <HStack gap={0} justify="space-between" alignItems="center">
           <header>
             <Stack gap={2.25} direction="row" align="center">
-              <Link
+              <HeaderLogoLink
+                portalHomeUrl={portalHomeUrl}
                 className={css({
                   display: 'flex',
                   flexDirection: { base: 'column', sm: 'row' },
@@ -138,7 +164,6 @@ export const Header = () => {
                     event.preventDefault()
                   }
                 }}
-                to="/"
               >
                 {/* this is there only as a hook for custom CSS users who might want to show something before the app logo */}
                 <div
@@ -149,13 +174,14 @@ export const Header = () => {
                 <HStack gap={0}>
                   <Logo />
                 </HStack>
-              </Link>
+              </HeaderLogoLink>
             </Stack>
           </header>
           <nav>
             <Stack gap={1} direction="row" align="center">
               <SupportButton />
               {isLoggedIn === false &&
+                !portalHomeUrl &&
                 !isHome &&
                 !isLegalTerms &&
                 !isAccessibility &&

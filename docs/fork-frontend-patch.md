@@ -120,3 +120,39 @@ Conservé volontairement :
 La CI du fork publie `ghcr.io/moukmessie/meet-frontend` (tag `sha-<court>`, digest dans
 le résumé du job), construite depuis `src/frontend/Dockerfile`, cible
 `frontend-production`, avec `VITE_APP_TITLE=Meet` et l'API en même origine.
+
+## Portail (`PORTAL_URL`)
+
+Quand une plateforme externe porte l'accueil, la création et les comptes, Meet n'est plus
+que la salle. Le réglage `PORTAL_URL` (variable d'environnement du backend, exposé au
+frontend par `GET /config/` sous la clé `portal_url`) active ce mode.
+
+- **Vide (défaut) : comportement amont inchangé.** Rien n'est masqué ni redirigé.
+- Valeur acceptée : une adresse `http(s)` ; seule son origine est retenue (chemin, requête et
+  fragment sont ignorés). Toute autre valeur (`javascript:`, `data:`, adresse relative…) est
+  traitée comme vide.
+- **Sorties de la salle** : quitter la salle, être retiré, doublon de session, salle fermée
+  par le serveur (réunion terminée, limite atteinte) et déconnexion pour inactivité
+  redirigent vers le portail : `<portail>/` pour un membre connecté, `<portail>/feedback`
+  pour un invité anonyme. La cible est **fixe** (origine de la configuration + chemin
+  constant) : elle n'est jamais lue dans l'URL de la page ni dans ses paramètres, donc
+  aucune redirection ouverte. Les coupures réseau gardent la reconnexion habituelle.
+- **En-tête** : le logo ramène à `<portail>/` (la confirmation de sortie reste demandée
+  dans une salle) ; plus aucun bouton « Se connecter » (en-tête, réglages, enregistrement).
+- **Écrans masqués** (redirection vers `<portail>/`) : accueil (donc création et « plus
+  tard »), `/feedback` de Meet, routes du SDK (`/sdk/*`). La salle, les mentions légales
+  et le test de connexion restent servis.
+- **Réglages masqués** : onglets Compte, Transcription et Enregistrement du dialogue de
+  réglages de la salle ; onglet Salles du dialogue d'en-tête (le dialogue simple reste).
+- **Téléphonie** : numéro d'appel et code PIN ne sont plus affichés (fenêtre d'invitation
+  et informations de la salle).
+- Langue de la salle : celle du navigateur, inchangée.
+- Code : `src/frontend/src/features/portal/` (calcul de la cible, route masquée, hooks),
+  `PORTAL_URL` dans `FRONTEND_CONFIGURATION` (`src/backend/meet/settings.py`).
+- Tests : `portalUrl.test.ts` et `routes.test.ts` (Vitest), `test_api_config_portal_url.py` (pytest).
+
+Retour arrière : retirer `PORTAL_URL` de l'environnement du backend (le mode amont revient
+sans redéploiement du frontend) ; le patch lui-même se retire en annulant son commit.
+
+Limite connue : ce patch masque les écrans, il n'empêche pas la création de salle côté
+serveur (voir le patch de contrôle de création, `docs/features/room-limits.md`).

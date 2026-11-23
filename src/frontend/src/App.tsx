@@ -9,6 +9,7 @@ import { I18nProvider } from 'react-aria-components'
 import { Layout } from './layout/Layout'
 import { NotFoundScreen } from './components/NotFoundScreen'
 import { routes } from './routes'
+import { PortalHiddenRoute } from '@/features/portal/PortalHiddenRoute'
 import './i18n/init'
 import { queryClient } from '@/api/queryClient'
 import { AppInitialization } from '@/components/AppInitialization'
@@ -31,13 +32,19 @@ function App() {
           <I18nProvider locale={i18n.language}>
             <Layout>
               <Switch>
-                {Object.entries(routes).map(([, route], i) => (
-                  <Route
-                    key={i}
-                    path={route.path}
-                    component={route.Component}
-                  />
-                ))}
+                {Object.entries(routes).map(([, route], i) =>
+                  route.hiddenWithPortal ? (
+                    <Route key={i} path={route.path}>
+                      <PortalHiddenRoute Component={route.Component} />
+                    </Route>
+                  ) : (
+                    <Route
+                      key={i}
+                      path={route.path}
+                      component={route.Component}
+                    />
+                  )
+                )}
                 <Route component={NotFoundScreen} />
               </Switch>
             </Layout>

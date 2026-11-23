@@ -37,6 +37,8 @@ import { useConfig } from '@/api/useConfig'
 import { isFireFox } from '@/utils/livekit'
 import { useIsMobile } from '@/utils/useIsMobile'
 import { navigateTo } from '@/navigation/navigateTo'
+import { isPortalExitReason } from '@/features/portal/portalUrl'
+import { useLeaveToPortal } from '@/features/portal/usePortal'
 import { PictureInPictureConference } from '@/features/pip/components/PictureInPictureConference'
 import { notifyAutoMutedOnJoin } from '@/features/notifications/utils'
 import { useSnapshot } from 'valtio'
@@ -59,6 +61,7 @@ export const Conference = ({
   initialRoomData?: ApiRoom
 }) => {
   const { data: apiConfig } = useConfig()
+  const leaveToPortal = useLeaveToPortal()
 
   const { userChoices: userConfig } = usePersistentUserChoices() as {
     userChoices: LocalUserChoices
@@ -295,6 +298,9 @@ export const Conference = ({
             }
           }}
           onDisconnected={(e) => {
+            // Fork patch: with a portal, every end of meeting (leave, limit,
+            // meeting ended) goes to the portal instead of Meet's feedback page
+            if (isPortalExitReason(e) && leaveToPortal()) return
             const metadata = {
               room_id: roomId,
             }

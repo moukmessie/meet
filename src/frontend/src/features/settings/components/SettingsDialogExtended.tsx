@@ -33,6 +33,7 @@ import {
   useIsRecordingModeEnabled,
   useRecordingEncoding,
 } from '@/features/recording'
+import { usePortalUrl } from '@/features/portal/usePortal'
 
 const tabsStyle = css({
   maxHeight: '40.625rem', // fixme size copied from meet settings modal
@@ -74,19 +75,37 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
   const isWideScreen = useMediaQuery('(min-width: 800px)') // fixme - hardcoded 50rem in pixel
 
   const isAdminOrOwner = useIsAdminOrOwner()
+  // Fork patch: with a portal, account, recording and transcription are
+  // managed there, so their tabs (and panels) are not offered
+  const hasPortal = !!usePortalUrl()
   const isScreenRecordingEnabled = useIsRecordingModeEnabled(
     RecordingMode.ScreenRecording
   )
   const { isCustomEncodingEnabled } = useRecordingEncoding()
   const showRecordingTab =
-    isAdminOrOwner && !!isScreenRecordingEnabled && isCustomEncodingEnabled
+    !hasPortal &&
+    isAdminOrOwner &&
+    !!isScreenRecordingEnabled &&
+    isCustomEncodingEnabled
+  const showTranscriptionTab = !hasPortal && isAdminOrOwner
+  const hiddenTabs: SettingsDialogExtendedKey[] = hasPortal
+    ? [
+        SettingsDialogExtendedKey.ACCOUNT,
+        SettingsDialogExtendedKey.TRANSCRIPTION,
+        SettingsDialogExtendedKey.RECORDING,
+      ]
+    : []
+  const defaultSelectedTab =
+    props.defaultSelectedTab && hiddenTabs.includes(props.defaultSelectedTab)
+      ? undefined
+      : props.defaultSelectedTab
 
   return (
     <Dialog innerRef={dialogEl} {...props} role="dialog" type="flex">
       <Tabs
         orientation="vertical"
         className={tabsStyle}
-        defaultSelectedKey={props.defaultSelectedTab}
+        defaultSelectedKey={defaultSelectedTab}
       >
         <div
           className={tabListContainerStyle}
@@ -102,10 +121,12 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
             </Heading>
           )}
           <TabList border={false}>
-            <Tab icon highlight id={SettingsDialogExtendedKey.ACCOUNT}>
-              <RiAccountCircleLine />
-              {isWideScreen && t(`tabs.${SettingsDialogExtendedKey.ACCOUNT}`)}
-            </Tab>
+            {!hasPortal && (
+              <Tab icon highlight id={SettingsDialogExtendedKey.ACCOUNT}>
+                <RiAccountCircleLine />
+                {isWideScreen && t(`tabs.${SettingsDialogExtendedKey.ACCOUNT}`)}
+              </Tab>
+            )}
             <Tab icon highlight id={SettingsDialogExtendedKey.AUDIO}>
               <RiSpeakerLine />
               {isWideScreen && t(`tabs.${SettingsDialogExtendedKey.AUDIO}`)}
@@ -127,7 +148,7 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
               <RiKeyboardBoxLine />
               {isWideScreen && t(`tabs.${SettingsDialogExtendedKey.SHORTCUTS}`)}
             </Tab>
-            {isAdminOrOwner && (
+            {showTranscriptionTab && (
               <Tab icon highlight id={SettingsDialogExtendedKey.TRANSCRIPTION}>
                 <Icon name="speech_to_text" />
                 {isWideScreen &&
@@ -149,19 +170,25 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
           </TabList>
         </div>
         <div className={tabPanelContainerStyle}>
-          <AccountTab
-            id={SettingsDialogExtendedKey.ACCOUNT}
-            onOpenChange={props.onOpenChange}
-          />
+          {!hasPortal && (
+            <AccountTab
+              id={SettingsDialogExtendedKey.ACCOUNT}
+              onOpenChange={props.onOpenChange}
+            />
+          )}
           <AudioTab id={SettingsDialogExtendedKey.AUDIO} />
           <VideoTab id={SettingsDialogExtendedKey.VIDEO} />
           <GeneralTab id={SettingsDialogExtendedKey.GENERAL} />
           <NotificationsTab id={SettingsDialogExtendedKey.NOTIFICATIONS} />
           <ShortcutTab id={SettingsDialogExtendedKey.SHORTCUTS} />
           {/* Transcription tab won't be accessible if the tab is not active in the tab list */}
-          <TranscriptionTab id={SettingsDialogExtendedKey.TRANSCRIPTION} />
+          {!hasPortal && (
+            <TranscriptionTab id={SettingsDialogExtendedKey.TRANSCRIPTION} />
+          )}
           {/* Recording tab won't be accessible if the tab is not active in the tab list */}
-          <RecordingTab id={SettingsDialogExtendedKey.RECORDING} />
+          {!hasPortal && (
+            <RecordingTab id={SettingsDialogExtendedKey.RECORDING} />
+          )}
           <AccessibilityTab id={SettingsDialogExtendedKey.ACCESSIBILITY} />
         </div>
       </Tabs>
