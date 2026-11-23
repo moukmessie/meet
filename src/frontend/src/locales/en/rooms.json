@@ -247,6 +247,8 @@
       "no_organization": "You must belong to an organization to create a meeting.",
       "check_unavailable": "Meeting creation is temporarily unavailable, please try again later.",
       "room_creation_refused": "You are not allowed to create a meeting.",
+      "room_creation_disabled": "Meetings cannot be created from here. Please go back to the portal to create one.",
+      "access_level_loosening_refused": "The access level of a meeting can only be made stricter.",
       "refused": "You are not allowed to create a meeting.",
       "concurrent_rooms_limit": "The maximum number of simultaneous meetings of your organization has been reached.",
       "unknown_organization": "Your organization is not recognized by the service.",

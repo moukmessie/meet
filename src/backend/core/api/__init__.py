@@ -88,6 +88,8 @@ def get_frontend_configuration(request):
             "default_video_codec": settings.LIVEKIT_DEFAULT_VIDEO_CODEC,
         },
         "allow_unregistered_rooms": settings.ALLOW_UNREGISTERED_ROOMS,
+        "room_creation_api_enabled": settings.ROOM_CREATION_API_ENABLED,
+        "room_access_level_harden_only": settings.ROOM_ACCESS_LEVEL_HARDEN_ONLY,
         "authenticated_users_can_edit_display_name": (
             settings.AUTHENTICATED_PARTICIPANTS_CAN_EDIT_DISPLAY_NAME
         ),

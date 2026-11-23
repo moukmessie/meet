@@ -81,6 +81,10 @@ from core.services.participants_management import (
 from core.services.room_creation import RoomCreation
 from core.services.room_creation_check import ensure_room_creation_allowed
 from core.services.room_management import RoomManagement, RoomManagementException
+from core.services.room_policy import (
+    ensure_access_level_not_loosened,
+    ensure_room_creation_enabled,
+)
 from core.services.room_roles import (
     RoomRoleError,
     RoomRoleService,
@@ -387,6 +391,11 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
             },
         )
 
+    def create(self, request, *args, **kwargs):
+        """Refuse the creation when it is turned off (ROOM_CREATION_API_ENABLED)."""
+        ensure_room_creation_enabled()
+        return super().create(request, *args, **kwargs)
+
     def perform_create(self, serializer):
         """Set the current user as owner of the newly created room.
 
@@ -442,6 +451,10 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
 
             old_configuration = locked_room.configuration
             old_access_level = locked_room.access_level
+
+            new_access_level = serializer.validated_data.get("access_level")
+            if new_access_level is not None:
+                ensure_access_level_not_loosened(old_access_level, new_access_level)
 
             room = serializer.save()
 

@@ -23,6 +23,8 @@ const KNOWN_CODES = [
   'entry_refused',
   'check_unavailable',
   'room_creation_refused',
+  'room_creation_disabled',
+  'access_level_loosening_refused',
   'refused',
   'scheduled_meeting_not_started',
   'scheduled_meeting_not_opened',

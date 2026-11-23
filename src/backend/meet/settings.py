@@ -885,6 +885,16 @@ class Base(Configuration):
     ALLOW_UNREGISTERED_ROOMS = values.BooleanValue(
         True, environ_name="ALLOW_UNREGISTERED_ROOMS", environ_prefix=None
     )
+    # Off: POST /rooms/ answers 403 "room_creation_disabled" (rooms are created
+    # elsewhere). Existing rooms are not affected.
+    ROOM_CREATION_API_ENABLED = values.BooleanValue(
+        True, environ_name="ROOM_CREATION_API_ENABLED", environ_prefix=None
+    )
+    # On: the API refuses to loosen the access level of a room
+    # (public < trusted < restricted); making it stricter is still accepted.
+    ROOM_ACCESS_LEVEL_HARDEN_ONLY = values.BooleanValue(
+        False, environ_name="ROOM_ACCESS_LEVEL_HARDEN_ONLY", environ_prefix=None
+    )
     ROOM_INACTIVITY_DELETION_DAYS = values.PositiveIntegerValue(
         None, environ_name="ROOM_INACTIVITY_DELETION_DAYS", environ_prefix=None
     )
