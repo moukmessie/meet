@@ -515,6 +515,12 @@ class Base(Configuration):
         "external_home_url": values.Value(
             None, environ_name="FRONTEND_EXTERNAL_HOME_URL", environ_prefix=None
         ),
+        # Fork patch: when set, Meet is only the room. Leaving the room goes to
+        # this portal and the screens of Meet that duplicate it are hidden.
+        # Empty keeps the upstream behaviour.
+        "portal_url": values.Value(
+            None, environ_name="PORTAL_URL", environ_prefix=None
+        ),
         "use_french_gov_footer": values.BooleanValue(
             False, environ_name="FRONTEND_USE_FRENCH_GOV_FOOTER", environ_prefix=None
         ),

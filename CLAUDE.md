@@ -24,7 +24,8 @@ Ces informations vivent dans des dépôts privés.
 | 5 | Limites de salle d'un service externe appliquées aux jetons (échec ouvert) | `docs/features/room-limits.md` |
 | 6 | Frontend : bannière de fin de réunion, refus traduits, neutralisation des marques | `docs/fork-frontend-patch.md` |
 | 7 | Salles de réunions planifiées, créées à la première entrée (échec fermé) | `docs/features/scheduled-rooms.md` |
-| 8 | Création de salle par l'API désactivable et niveau d'accès renforcé seulement | `docs/features/room-policy.md` |
+| 8 | `PORTAL_URL` : sorties de salle et logo vers un portail, écrans propres de Meet masqués (vide : amont) | `docs/fork-frontend-patch.md` |
+| 9 | Création de salle par l'API désactivable et niveau d'accès renforcé seulement | `docs/features/room-policy.md` |
 
 Migrations du fork : elles gardent leurs noms (`0030_user_organization_id`, `0031_room_organization_id`,
 `0032_backfill_room_organization_id`) pour ne pas être rejouées sur une base déjà migrée. Elles forment une

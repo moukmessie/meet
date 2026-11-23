@@ -1,9 +1,12 @@
 import { useConfig } from '@/api/useConfig'
+import { usePortalUrl } from '@/features/portal/usePortal'
 
 export const useTelephony = () => {
   const { data } = useConfig()
+  // Fork patch: with a portal, the dial-in number and the PIN code are hidden
+  const portalUrl = usePortalUrl()
 
-  if (!data?.telephony?.enabled) {
+  if (portalUrl || !data?.telephony?.enabled) {
     return {
       enabled: false,
     }

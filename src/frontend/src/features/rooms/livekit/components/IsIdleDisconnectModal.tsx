@@ -4,12 +4,22 @@ import { css } from '@/styled-system/css'
 import { useSnapshot } from 'valtio'
 import { connectionObserverStore } from '@/stores/connectionObserver'
 import { Stack } from '@/styled-system/jsx'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { navigateTo } from '@/navigation/navigateTo'
+import { useLeaveToPortal } from '@/features/portal/usePortal'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
 import { SettingsDialogExtendedKey } from '@/features/settings/type'
 import { useHumanizeDuration } from '@/hooks/useHumanizeDuration'
 import { openSettingsDialog } from '@/stores/settings'
+
+// Fork patch: leave for the portal when one is configured, else Meet's feedback
+const useLeaveRoom = () => {
+  const leaveToPortal = useLeaveToPortal()
+  return useCallback(() => {
+    if (leaveToPortal()) return
+    navigateTo('feedback', { duplicateIdentity: false })
+  }, [leaveToPortal])
+}
 
 const IDLE_DISCONNECT_TIMEOUT_MS = 120000 // 2 minutes
 const COUNTDOWN_ANNOUNCEMENT_SECONDS = new Set([90, 60, 30])
@@ -40,6 +50,7 @@ const useSrCountdownAnnouncement = (seconds: number) => {
 }
 
 const VisualCountDown = () => {
+  const leaveRoom = useLeaveRoom()
   const [timeRemaining, setTimeRemaining] = useState(IDLE_DISCONNECT_TIMEOUT_MS)
 
   const remainingSeconds = Math.floor(timeRemaining / 1000)
@@ -55,7 +66,7 @@ const VisualCountDown = () => {
         if (prev <= 1000) {
           clearInterval(interval)
           connectionObserverStore.isIdleDisconnectModalOpen = false
-          navigateTo('feedback', { duplicateIdentity: false })
+          leaveRoom()
           return 0
         }
         return prev - 1000
@@ -63,7 +74,7 @@ const VisualCountDown = () => {
     }, 1000)
 
     return () => clearInterval(interval)
-  }, [])
+  }, [leaveRoom])
 
   return (
     <div
@@ -112,6 +123,7 @@ const Settings = () => {
 }
 
 export const IsIdleDisconnectModal = () => {
+  const leaveRoom = useLeaveRoom()
   const { t } = useTranslation('rooms', { keyPrefix: 'isIdleDisconnectModal' })
   const connectionObserverSnap = useSnapshot(connectionObserverStore)
   return (
@@ -142,7 +154,7 @@ export const IsIdleDisconnectModal = () => {
               <Button
                 onPress={() => {
                   connectionObserverStore.isIdleDisconnectModalOpen = false
-                  navigateTo('feedback', { duplicateIdentity: false })
+                  leaveRoom()
                 }}
                 size="sm"
                 variant="secondary"
