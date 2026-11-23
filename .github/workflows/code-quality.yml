@@ -1,7 +1,11 @@
 name: Project quality Workflow
 
 on:
+  # Upstream-only checks (commit lint, spelling): the fork's patched/** branches use their
+  # own commit convention and French docs, and are covered by fork-patched-ci.yml.
   pull_request:
+    branches:
+      - main
 
 permissions:
   contents: read
