@@ -29,6 +29,10 @@ from core.api.locks import room_locked_for_update
 from core.services.jwt_token import JwtTokenService
 from core.services.room_creation_check import ensure_room_creation_allowed
 from core.services.room_management import RoomManagement, RoomManagementException
+from core.services.room_policy import (
+    ensure_access_level_not_loosened,
+    ensure_room_creation_enabled,
+)
 from core.services.transit_code import TransitCodeService
 
 from ..services.provisional_user_service import (
@@ -283,6 +287,7 @@ class RoomViewSet(  # pylint: disable=too-many-ancestors
 
     def perform_create(self, serializer: serializers.RoomSerializer):
         """Set the current user as owner of the newly created room."""
+        ensure_room_creation_enabled()
         ensure_room_creation_allowed(self.request.user)
         room = serializer.save(organization_id=self.request.user.organization_id)
         self.audit_target = room
@@ -309,6 +314,12 @@ class RoomViewSet(  # pylint: disable=too-many-ancestors
 
         with room_locked_for_update(serializer.instance) as locked_room:
             serializer.instance = locked_room
+
+            new_access_level = serializer.validated_data.get("access_level")
+            if new_access_level is not None:
+                ensure_access_level_not_loosened(
+                    locked_room.access_level, new_access_level
+                )
 
             previous_values = {
                 "access_level": locked_room.access_level,

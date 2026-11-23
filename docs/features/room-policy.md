@@ -32,8 +32,16 @@ salle inconnue.
 
 ## API externe
 
-L'API de ressource (`rooms:create`, jeton OIDC de service) n'est pas concernée par ces
-réglages : ne pas l'exposer publiquement (au niveau de l'Ingress ou du proxy).
+L'API de ressource (`/external-api/v1.0/rooms/`, scopes `rooms:create` et `rooms:update`)
+applique les deux réglages, avec les mêmes réponses et les mêmes codes que l'API du navigateur.
+Un niveau d'accès invalide reste une erreur de validation (`400`), avant tout refus de politique.
+
+## Cas volontairement non couverts
+
+- La création d'une salle à la première entrée dans une réunion planifiée
+  (`get_or_create_scheduled_room`, voir `scheduled-rooms.md`) n'est pas bloquée par
+  `ROOM_CREATION_API_ENABLED` : cette création est pilotée par la plateforme externe.
+- L'administration Django (réservée au personnel) n'est pas soumise à la règle de durcissement.
 
 ## Retour arrière
 

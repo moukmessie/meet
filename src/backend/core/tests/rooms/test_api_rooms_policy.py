@@ -10,6 +10,7 @@ from rest_framework.test import APIClient
 
 from ...factories import RoomFactory, UserFactory
 from ...models import Room, RoomAccessLevel
+from ..test_external_api_rooms import generate_test_token
 
 pytestmark = pytest.mark.django_db
 
@@ -180,3 +181,91 @@ def test_api_rooms_access_level_loosening_allowed_by_default(_sync):
     assert response.status_code == 200
     room.refresh_from_db()
     assert room.access_level == "public"
+
+
+# External API (application-delegated), same policies and same responses.
+
+
+def _external_client(user, scopes):
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {generate_test_token(user, scopes)}")
+    return client
+
+
+def test_external_api_rooms_create_disabled(settings):
+    """The external API cannot create rooms when creation is disabled."""
+    settings.ROOM_CREATION_API_ENABLED = False
+    client = _external_client(UserFactory(), ["rooms:create"])
+
+    response = client.post("/external-api/v1.0/rooms/", {}, format="json")
+
+    assert response.status_code == 403
+    assert response.json()["code"] == "room_creation_disabled"
+    assert not Room.objects.exists()
+
+
+def test_external_api_rooms_create_enabled_by_default():
+    """Upstream behavior with the default settings."""
+    client = _external_client(UserFactory(), ["rooms:create"])
+
+    response = client.post("/external-api/v1.0/rooms/", {}, format="json")
+
+    assert response.status_code == 201
+
+
+@pytest.mark.parametrize("old,new", [("restricted", "trusted"), ("trusted", "public")])
+def test_external_api_rooms_access_level_harden_only_refuses_loosening(
+    old, new, settings
+):
+    """The external API cannot loosen the access level under the harden-only policy."""
+    settings.ROOM_ACCESS_LEVEL_HARDEN_ONLY = True
+    settings.EXTERNAL_API_ALLOW_PUBLIC_ACCESS = True
+    user, room = _owned_room(old)
+    client = _external_client(user, ["rooms:update"])
+
+    response = client.patch(
+        f"/external-api/v1.0/rooms/{room.id}/", {"access_level": new}, format="json"
+    )
+
+    assert response.status_code == 403
+    assert response.json()["code"] == "access_level_loosening_refused"
+    room.refresh_from_db()
+    assert room.access_level == old
+
+
+@mock.patch("core.services.room_management.RoomManagement.sync_room_metadata")
+def test_external_api_rooms_access_level_harden_only_accepts_hardening(_sync, settings):
+    """The external API can still make the access level stricter."""
+    settings.ROOM_ACCESS_LEVEL_HARDEN_ONLY = True
+    user, room = _owned_room("trusted")
+    client = _external_client(user, ["rooms:update"])
+
+    response = client.patch(
+        f"/external-api/v1.0/rooms/{room.id}/",
+        {"access_level": "restricted"},
+        format="json",
+    )
+
+    assert response.status_code == 200
+    room.refresh_from_db()
+    assert room.access_level == "restricted"
+
+
+@pytest.mark.parametrize("prefix", ["/api/v1.0", "/external-api/v1.0"])
+def test_rooms_access_level_invalid_value_is_400_before_policy(prefix, settings):
+    """An invalid access level is a validation error (400), not a policy refusal."""
+    settings.ROOM_ACCESS_LEVEL_HARDEN_ONLY = True
+    user, room = _owned_room("restricted")
+    client = (
+        _client(user)
+        if prefix == "/api/v1.0"
+        else _external_client(user, ["rooms:update"])
+    )
+
+    response = client.patch(
+        f"{prefix}/rooms/{room.id}/", {"access_level": "nope"}, format="json"
+    )
+
+    assert response.status_code == 400
+    room.refresh_from_db()
+    assert room.access_level == "restricted"
