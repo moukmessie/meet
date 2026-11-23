@@ -35,6 +35,10 @@ describe('normalizePortalUrl', () => {
     '//portal.example.com',
     '/feedback',
     'not a url',
+    'https://portal@evil.example.com',
+    'https://portal.example.com@evil.example.com/',
+    'https://user:secret@portal.example.com',
+    'https://:secret@portal.example.com',
   ])('rejects %s', (value) => {
     expect(normalizePortalUrl(value)).toBeNull()
   })

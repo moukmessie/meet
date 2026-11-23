@@ -17,6 +17,8 @@ export const normalizePortalUrl = (
   try {
     const url = new URL(value.trim())
     if (url.protocol !== 'https:' && url.protocol !== 'http:') return null
+    // credentials in the address are a spoofing trick (https://portal@evil.com)
+    if (url.username || url.password) return null
     return url.origin
   } catch {
     return null
